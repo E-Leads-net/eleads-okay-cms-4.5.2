@@ -6,11 +6,11 @@
 
 1. Скопируйте папку `ELeads` в каталог:
 
-   `app/Okay/Modules/`
+   `/Okay/Modules/`
 
    Итоговый путь должен быть:
 
-   `app/Okay/Modules/ELeads/YmlFeed`
+   `/Okay/Modules/ELeads/YmlFeed`
 
 2. В админке: **Модули → Установить / Активировать**.
 
