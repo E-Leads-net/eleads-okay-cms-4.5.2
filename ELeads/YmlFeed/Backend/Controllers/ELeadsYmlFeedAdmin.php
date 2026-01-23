@@ -1,0 +1,87 @@
+<?php
+
+
+namespace Okay\Modules\ELeads\YmlFeed\Backend\Controllers;
+
+
+use Okay\Admin\Controllers\IndexAdmin;
+use Okay\Core\Request;
+use Okay\Entities\CategoriesEntity;
+use Okay\Entities\CurrenciesEntity;
+use Okay\Entities\FeaturesEntity;
+use Okay\Entities\FeaturesValuesEntity;
+use Okay\Entities\LanguagesEntity;
+
+class ELeadsYmlFeedAdmin extends IndexAdmin
+{
+    public function fetch(
+        CategoriesEntity $categoriesEntity,
+        CurrenciesEntity $currenciesEntity,
+        FeaturesEntity $featuresEntity,
+        FeaturesValuesEntity $featuresValuesEntity,
+        LanguagesEntity $languagesEntity
+    ) {
+        if ($this->request->method('POST')) {
+            $this->settings->set('eleads__yml_feed__categories', (array) $this->request->post('eleads__yml_feed__categories'));
+            $this->settings->set('eleads__yml_feed__filter_features', (array) $this->request->post('eleads__yml_feed__filter_features'));
+            $this->settings->set('eleads__yml_feed__filter_options', (array) $this->request->post('eleads__yml_feed__filter_options'));
+            $this->settings->set('eleads__yml_feed__access_key', $this->request->post('eleads__yml_feed__access_key', 'string'));
+            $this->settings->set('eleads__yml_feed__shop_name', $this->request->post('eleads__yml_feed__shop_name'));
+            $this->settings->set('eleads__yml_feed__email', $this->request->post('eleads__yml_feed__email'));
+            $this->settings->set('eleads__yml_feed__shop_url', $this->request->post('eleads__yml_feed__shop_url'));
+            $this->settings->set('eleads__yml_feed__currency', $this->request->post('eleads__yml_feed__currency'));
+            $this->settings->set('eleads__yml_feed__picture_limit', $this->request->post('eleads__yml_feed__picture_limit', 'integer'));
+            $this->settings->set('eleads__yml_feed__short_description_source', $this->request->post('eleads__yml_feed__short_description_source'));
+
+            $this->design->assign('message_success', 'saved');
+        }
+
+        $categories = $categoriesEntity->getCategoriesTree();
+        $selectedCategories = (array) $this->settings->get('eleads__yml_feed__categories');
+        if (empty($selectedCategories)) {
+            $selectedCategories = $this->collectCategoryIds($categories);
+        }
+
+        $defaultShopName = $this->settings->get('site_name');
+        $defaultEmail = $this->settings->get('order_email') ?: $this->settings->get('notify_from_email');
+        $mainCurrency = $currenciesEntity->getMainCurrency();
+        $defaultCurrency = $mainCurrency ? $mainCurrency->code : '';
+        $defaultPictureLimit = 5;
+        $features = $featuresEntity->find();
+        $featureValues = $featuresValuesEntity->find();
+        $languages = $languagesEntity->mappedBy('id')->find();
+
+        $rootUrl = Request::getRootUrl();
+        $feedUrls = [];
+        foreach ($languages as $language) {
+            $feedUrls[$language->id] = rtrim($rootUrl, '/') . '/eleads-yml/' . $language->label . '.xml';
+        }
+
+        $this->design->assign('categories', $categories);
+        $this->design->assign('features', $features);
+        $this->design->assign('feature_values', $featureValues);
+        $this->design->assign('languages', $languages);
+        $this->design->assign('feed_urls', $feedUrls);
+        $this->design->assign('selected_categories', $selectedCategories);
+        $this->design->assign('selected_features', (array) $this->settings->get('eleads__yml_feed__filter_features'));
+        $this->design->assign('selected_feature_values', (array) $this->settings->get('eleads__yml_feed__filter_options'));
+        $this->design->assign('default_shop_name', $defaultShopName);
+        $this->design->assign('default_email', $defaultEmail);
+        $this->design->assign('default_currency', $defaultCurrency);
+        $this->design->assign('default_picture_limit', $defaultPictureLimit);
+
+        $this->response->setContent($this->design->fetch('e_leads_yml_feed.tpl'));
+    }
+
+    private function collectCategoryIds(array $categories): array
+    {
+        $result = [];
+        foreach ($categories as $category) {
+            $result[] = (int) $category->id;
+            if (!empty($category->subcategories)) {
+                $result = array_merge($result, $this->collectCategoryIds($category->subcategories));
+            }
+        }
+        return $result;
+    }
+}
