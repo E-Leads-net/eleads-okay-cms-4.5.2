@@ -2,12 +2,16 @@
 
 
 $lang = [
-    'okaycms__eleads_yml_feed__title' => 'E-Leads YML Feed',
+    'okaycms__eleads_yml_feed__title' => 'E-Leads',
     'okaycms__eleads_yml_feed__params' => 'Параметри',
+    'okaycms__eleads_yml_feed__tab_export' => 'Налаштування експорту',
+    'okaycms__eleads_yml_feed__tab_api_key' => 'API Key',
     'okaycms__eleads_yml_feed__feed_urls' => 'URL фіду',
     'okaycms__eleads_yml_feed__categories' => 'Категорії',
     'okaycms__eleads_yml_feed__filter_features' => 'Атрибути для фільтрації',
     'okaycms__eleads_yml_feed__filter_options' => 'Опції для фільтрації',
+    'okaycms__eleads_yml_feed__enable_filter_features' => 'Увімкнути вибір атрибутів для фільтрації',
+    'okaycms__eleads_yml_feed__enable_filter_options' => 'Увімкнути вибір опцій для фільтрації',
     'okaycms__eleads_yml_feed__select_all' => 'Позначити всі',
     'okaycms__eleads_yml_feed__select_none' => 'Зняти позначення',
     'okaycms__eleads_yml_feed__categories_hint' => 'Позначте категорії для вивантаження. Якщо нічого не вибрано — вивантажуються всі категорії.',
@@ -24,4 +28,9 @@ $lang = [
     'okaycms__eleads_yml_feed__short_description_annotation' => 'Короткий опис (анотація)',
     'okaycms__eleads_yml_feed__short_description_meta' => 'Meta description',
     'okaycms__eleads_yml_feed__short_description_description' => 'Повний опис',
+    'okaycms__eleads_api_key__title' => 'Підключення E-Leads',
+    'okaycms__eleads_api_key__hint' => 'Введіть API ключ проєкту E-Leads для доступу до налаштувань модуля.',
+    'okaycms__eleads_api_key__label' => 'API ключ проєкту',
+    'okaycms__eleads_api_key__invalid' => 'Ключ недійсний або не активний.',
+    'okaycms__eleads_api_key__save' => 'Зберегти ключ',
 ];

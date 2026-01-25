@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Okay\Modules\ELeads\YmlFeed\Init;
+namespace Okay\Modules\ELeads\Eleads\Init;
 
 
 use Okay\Core\Modules\AbstractInit;
@@ -13,13 +13,14 @@ class Init extends AbstractInit
     public function install()
     {
         $this->setModuleType(MODULE_TYPE_XML);
-        $this->setBackendMainController('ELeadsYmlFeedAdmin');
+        $this->setBackendMainController('ELeadsAdmin');
     }
 
     public function init()
     {
+        $this->setBackendMainController('ELeadsAdmin');
         $this->addPermission(self::PERMISSION);
-        $this->registerBackendController('ELeadsYmlFeedAdmin');
-        $this->addBackendControllerPermission('ELeadsYmlFeedAdmin', self::PERMISSION);
+        $this->registerBackendController('ELeadsAdmin');
+        $this->addBackendControllerPermission('ELeadsAdmin', self::PERMISSION);
     }
 }

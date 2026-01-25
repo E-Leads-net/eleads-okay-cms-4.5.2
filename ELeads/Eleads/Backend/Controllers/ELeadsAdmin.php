@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Okay\Modules\ELeads\YmlFeed\Backend\Controllers;
+namespace Okay\Modules\ELeads\Eleads\Backend\Controllers;
 
 
 use Okay\Admin\Controllers\IndexAdmin;
@@ -11,8 +11,9 @@ use Okay\Entities\CurrenciesEntity;
 use Okay\Entities\FeaturesEntity;
 use Okay\Entities\FeaturesValuesEntity;
 use Okay\Entities\LanguagesEntity;
+use Okay\Modules\ELeads\Eleads\Config\ELeadsApiRoutes;
 
-class ELeadsYmlFeedAdmin extends IndexAdmin
+class ELeadsAdmin extends IndexAdmin
 {
     public function fetch(
         CategoriesEntity $categoriesEntity,
@@ -21,7 +22,35 @@ class ELeadsYmlFeedAdmin extends IndexAdmin
         FeaturesValuesEntity $featuresValuesEntity,
         LanguagesEntity $languagesEntity
     ) {
-        if ($this->request->method('POST')) {
+        $apiKey = trim((string) $this->settings->get('eleads__api_key'));
+        $apiKeyValid = false;
+        $apiKeyError = null;
+        $apiKeySubmitted = null;
+        $isApiKeyForm = false;
+
+        if ($this->request->method('POST') && $this->request->post('eleads__api_key_submit') !== null) {
+            $isApiKeyForm = true;
+            $apiKeySubmitted = trim((string) $this->request->post('eleads__api_key', 'string'));
+            if ($apiKeySubmitted !== '' && $this->checkApiKeyStatus($apiKeySubmitted)) {
+                $this->settings->set('eleads__api_key', $apiKeySubmitted);
+                $apiKey = $apiKeySubmitted;
+                $apiKeyValid = true;
+                $this->design->assign('message_success', 'saved');
+            } else {
+                $apiKeyError = 'invalid';
+            }
+        }
+
+        if (!$isApiKeyForm) {
+            if ($apiKey !== '') {
+                $apiKeyValid = $this->checkApiKeyStatus($apiKey);
+                if (!$apiKeyValid) {
+                    $apiKeyError = 'invalid';
+                }
+            }
+        }
+
+        if ($this->request->method('POST') && !$isApiKeyForm && $apiKeyValid) {
             $this->settings->set('eleads__yml_feed__categories', (array) $this->request->post('eleads__yml_feed__categories'));
             $this->settings->set('eleads__yml_feed__filter_features', (array) $this->request->post('eleads__yml_feed__filter_features'));
             $this->settings->set('eleads__yml_feed__filter_options', (array) $this->request->post('eleads__yml_feed__filter_options'));
@@ -69,8 +98,11 @@ class ELeadsYmlFeedAdmin extends IndexAdmin
         $this->design->assign('default_email', $defaultEmail);
         $this->design->assign('default_currency', $defaultCurrency);
         $this->design->assign('default_picture_limit', $defaultPictureLimit);
+        $this->design->assign('api_key_required', !$apiKeyValid);
+        $this->design->assign('api_key_value', $apiKeySubmitted !== null ? $apiKeySubmitted : $apiKey);
+        $this->design->assign('api_key_error', $apiKeyError);
 
-        $this->response->setContent($this->design->fetch('e_leads_yml_feed.tpl'));
+        $this->response->setContent($this->design->fetch('e_leads.tpl'));
     }
 
     private function collectCategoryIds(array $categories): array
@@ -83,5 +115,45 @@ class ELeadsYmlFeedAdmin extends IndexAdmin
             }
         }
         return $result;
+    }
+
+    private function checkApiKeyStatus(string $apiKey): bool
+    {
+        if ($apiKey === '') {
+            return false;
+        }
+
+        $ch = curl_init();
+        if ($ch === false) {
+            return false;
+        }
+
+        $headers = [
+            'Authorization: Bearer ' . $apiKey,
+            'Accept: application/json',
+        ];
+
+        curl_setopt($ch, CURLOPT_URL, ELeadsApiRoutes::TOKEN_STATUS);
+        curl_setopt($ch, CURLOPT_HTTPGET, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+
+        $response = curl_exec($ch);
+        if ($response === false) {
+            curl_close($ch);
+            return false;
+        }
+
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode < 200 || $httpCode >= 300) {
+            return false;
+        }
+
+        $data = json_decode($response, true);
+        return is_array($data) && !empty($data['ok']);
     }
 }

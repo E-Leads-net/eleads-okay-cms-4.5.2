@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Okay\Modules\ELeads\YmlFeed\Init;
+namespace Okay\Modules\ELeads\Eleads\Init;
 
 
 use Okay\Core\OkayContainer\Reference\ParameterReference as PR;

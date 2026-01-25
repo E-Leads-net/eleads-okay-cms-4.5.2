@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Okay\Modules\ELeads\YmlFeed;
+namespace Okay\Modules\ELeads\Eleads;
 
 
 return [
@@ -11,7 +11,7 @@ return [
             '{$lang}' => '([a-z]{2})',
         ],
         'params' => [
-            'controller' => __NAMESPACE__ . '\Controllers\ELeadsYmlFeedController',
+            'controller' => __NAMESPACE__ . '\Controllers\ELeadsController',
             'method' => 'render',
         ],
     ],
