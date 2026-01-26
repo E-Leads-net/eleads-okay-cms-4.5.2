@@ -32,6 +32,7 @@ class ELeadsFeedFormatter
         if (empty($productIds)) {
             return [];
         }
+        $productIdSet = array_fill_keys(array_map('intval', $productIds), true);
 
         $select = $queryFactory->newSelect();
         $select->from('__products_features_values AS pf')
@@ -46,15 +47,18 @@ class ELeadsFeedFormatter
             ->join('LEFT', '__features AS f', 'f.id=fv.feature_id')
             ->join('LEFT', '__lang_features AS lf', 'lf.feature_id=f.id AND lf.lang_id=:lang_id')
             ->join('LEFT', '__lang_features_values AS lfv', 'lfv.feature_value_id=fv.id AND lfv.lang_id=:lang_id')
-            ->where('pf.product_id IN (:product_ids)')
-            ->bindValue('product_ids', $productIds)
+            ->where('pf.product_id IN (?)', $productIds)
             ->bindValue('lang_id', $langId)
             ->orderBy(['pf.product_id']);
 
         $rows = $select->results();
         $result = [];
         foreach ($rows as $row) {
-            $result[$row->product_id][] = [
+            $productId = (int) $row->product_id;
+            if (!isset($productIdSet[$productId])) {
+                continue;
+            }
+            $result[$productId][] = [
                 'feature_id' => (int) $row->feature_id,
                 'feature_name' => $row->feature_name,
                 'value' => $row->value,

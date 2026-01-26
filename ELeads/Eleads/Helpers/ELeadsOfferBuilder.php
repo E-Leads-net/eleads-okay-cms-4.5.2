@@ -51,6 +51,12 @@ class ELeadsOfferBuilder
             }
 
             $productVariants = $variantsByProduct[$product->id] ?? [];
+            if (!empty($productVariants)) {
+                $productId = (int) $product->id;
+                $productVariants = array_values(array_filter($productVariants, static function ($variant) use ($productId) {
+                    return isset($variant->product_id) && (int) $variant->product_id === $productId;
+                }));
+            }
             if (empty($productVariants)) {
                 continue;
             }
@@ -59,53 +65,77 @@ class ELeadsOfferBuilder
             $pictures = ELeadsFeedFormatter::buildImageUrls($config, $productImages, $pictureLimit);
 
             $productFeatures = $featureMap[$product->id] ?? [];
+            $firstVariant = reset($productVariants);
+            if ($firstVariant === false) {
+                continue;
+            }
 
-            $variantCount = count($productVariants);
+            $quantity = 0;
+            $hasUnlimited = false;
             foreach ($productVariants as $variant) {
-                $available = ($variant->stock > 0);
-                $quantity = $variant->stock > 0 ? (int) $variant->stock : 0;
                 if ($variant->stock === null) {
-                    $available = true;
-                    $quantity = 1;
+                    $hasUnlimited = true;
+                    break;
                 }
-
-                $price = $money->convert($variant->price, $variant->currency_id, false);
-                $oldPrice = null;
-                if (!empty($variant->compare_price) && $variant->compare_price > 0) {
-                    $oldPrice = $money->convert($variant->compare_price, $variant->currency_id, false);
+                if ($variant->stock > 0) {
+                    $quantity += (int) $variant->stock;
                 }
+            }
 
-                $offerName = $product->name;
+            $available = $hasUnlimited || $quantity > 0;
+            if ($hasUnlimited) {
+                $quantity = 1;
+            }
+
+            $price = $money->convert($firstVariant->price, $firstVariant->currency_id, false);
+            $oldPrice = null;
+            if (!empty($firstVariant->compare_price) && $firstVariant->compare_price > 0) {
+                $oldPrice = $money->convert($firstVariant->compare_price, $firstVariant->currency_id, false);
+            }
+
+            $offerName = $product->name;
+            $optionValues = [];
+            foreach ($productVariants as $variant) {
                 if (!empty($variant->name)) {
-                    $offerName .= ' (' . $variant->name . ')';
+                    $optionValues[] = (string) $variant->name;
                 }
+            }
+            $optionValues = array_values(array_unique($optionValues));
 
-                $offers[] = [
-                    'id' => $variant->id,
-                    'group_id' => $variantCount > 1 ? $product->id : null,
-                    'available' => $available,
-                    'url' => $product->url,
-                    'name' => $offerName,
-                    'price' => $price,
-                    'old_price' => $oldPrice,
-                    'currency' => $currencyCode,
-                    'category_id' => $categoryId,
-                    'quantity' => $quantity,
-                    'stock_status' => ELeadsFeedFormatter::formatStockStatus($available, $lang),
-                    'pictures' => $pictures,
-                    'vendor' => !empty($brandsById[$product->brand_id]) ? $brandsById[$product->brand_id] : '',
-                    'sku' => $variant->sku,
-                    'label' => '',
-                    'order' => $product->position ?? 0,
-                    'description' => $product->description,
-                    'short_description' => ELeadsFeedFormatter::resolveShortDescription($product, $shortDescriptionSource),
-                    'params' => ELeadsFeedFormatter::prepareParams(
-                        $productFeatures,
-                        $selectedFeatureSet,
-                        $selectedFeatureValueSet
-                    ),
+            $params = ELeadsFeedFormatter::prepareParams(
+                $productFeatures,
+                $selectedFeatureSet,
+                $selectedFeatureValueSet
+            );
+            if (!empty($optionValues)) {
+                $params[] = [
+                    'name' => 'Опции',
+                    'value' => implode(' | ', $optionValues),
+                    'filter' => false,
                 ];
             }
+
+            $offers[] = [
+                'id' => $product->id,
+                'group_id' => null,
+                'available' => $available,
+                'url' => $product->url,
+                'name' => $offerName,
+                'price' => $price,
+                'old_price' => $oldPrice,
+                'currency' => $currencyCode,
+                'category_id' => $categoryId,
+                'quantity' => $quantity,
+                'stock_status' => ELeadsFeedFormatter::formatStockStatus($available, $lang),
+                'pictures' => $pictures,
+                'vendor' => !empty($brandsById[$product->brand_id]) ? $brandsById[$product->brand_id] : '',
+                'sku' => $firstVariant->sku,
+                'label' => '',
+                'order' => $product->position ?? 0,
+                'description' => $product->description,
+                'short_description' => ELeadsFeedFormatter::resolveShortDescription($product, $shortDescriptionSource),
+                'params' => $params,
+            ];
         }
 
         return $offers;

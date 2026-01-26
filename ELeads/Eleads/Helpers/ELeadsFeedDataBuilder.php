@@ -10,6 +10,7 @@ use Okay\Entities\ImagesEntity;
 use Okay\Entities\ProductsEntity;
 use Okay\Entities\VariantsEntity;
 use Okay\Modules\ELeads\Eleads\Helpers\ELeadsFeedFormatter;
+use Okay\Helpers\ProductsHelper;
 use Okay\Core\Request;
 use Okay\Core\Settings;
 use Okay\Entities\CurrenciesEntity;
@@ -77,6 +78,45 @@ class ELeadsFeedDataBuilder
             'visible' => 1,
             'limit' => $productsEntity->count(['visible' => 1]),
         ]);
+    }
+
+    public static function buildProductFeatures(ProductsHelper $productsHelper, array $products): array
+    {
+        if (empty($products)) {
+            return [];
+        }
+
+        $productsById = [];
+        foreach ($products as $product) {
+            $productsById[(int) $product->id] = $product;
+        }
+
+        $productsById = $productsHelper->attachFeatures($productsById);
+
+        $featureMap = [];
+        foreach ($productsById as $productId => $product) {
+            if (empty($product->features)) {
+                continue;
+            }
+            foreach ($product->features as $feature) {
+                if (empty($feature->name) || empty($feature->values)) {
+                    continue;
+                }
+                foreach ($feature->values as $featureValue) {
+                    if (!isset($featureValue->value)) {
+                        continue;
+                    }
+                    $featureMap[$productId][] = [
+                        'feature_id' => (int) $feature->id,
+                        'feature_name' => $feature->name,
+                        'value' => $featureValue->value,
+                        'value_id' => (int) $featureValue->id,
+                    ];
+                }
+            }
+        }
+
+        return $featureMap;
     }
 
     public static function buildExportCategories(
