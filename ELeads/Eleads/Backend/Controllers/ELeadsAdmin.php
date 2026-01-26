@@ -55,6 +55,7 @@ class ELeadsAdmin extends IndexAdmin
             $this->settings->set('eleads__yml_feed__categories', (array) $this->request->post('eleads__yml_feed__categories'));
             $this->settings->set('eleads__yml_feed__filter_features', (array) $this->request->post('eleads__yml_feed__filter_features'));
             $this->settings->set('eleads__yml_feed__filter_options', (array) $this->request->post('eleads__yml_feed__filter_options'));
+            $this->settings->set('eleads__yml_feed__grouped', $this->request->post('eleads__yml_feed__grouped') ? 1 : 0);
             $this->settings->set('eleads__yml_feed__access_key', $this->request->post('eleads__yml_feed__access_key', 'string'));
             $this->settings->set('eleads__yml_feed__shop_name', $this->request->post('eleads__yml_feed__shop_name'));
             $this->settings->set('eleads__yml_feed__email', $this->request->post('eleads__yml_feed__email'));
@@ -72,9 +73,6 @@ class ELeadsAdmin extends IndexAdmin
 
         $categories = $categoriesEntity->getCategoriesTree();
         $selectedCategories = (array) $this->settings->get('eleads__yml_feed__categories');
-        if (empty($selectedCategories)) {
-            $selectedCategories = $this->collectCategoryIds($categories);
-        }
 
         $defaultShopName = $this->settings->get('site_name');
         $defaultEmail = $this->settings->get('order_email') ?: $this->settings->get('notify_from_email');
@@ -102,6 +100,11 @@ class ELeadsAdmin extends IndexAdmin
         $this->design->assign('selected_categories', $selectedCategories);
         $this->design->assign('selected_features', (array) $this->settings->get('eleads__yml_feed__filter_features'));
         $this->design->assign('selected_feature_values', (array) $this->settings->get('eleads__yml_feed__filter_options'));
+        $groupedProducts = $this->settings->get('eleads__yml_feed__grouped');
+        if ($groupedProducts === null || $groupedProducts === '') {
+            $groupedProducts = 1;
+        }
+        $this->design->assign('grouped_products', (int) $groupedProducts);
         $this->design->assign('default_shop_name', $defaultShopName);
         $this->design->assign('default_email', $defaultEmail);
         $this->design->assign('default_currency', $defaultCurrency);
@@ -113,18 +116,6 @@ class ELeadsAdmin extends IndexAdmin
         $this->design->assign('update_action_url', $updateActionUrl);
 
         $this->response->setContent($this->design->fetch('e_leads.tpl'));
-    }
-
-    private function collectCategoryIds(array $categories): array
-    {
-        $result = [];
-        foreach ($categories as $category) {
-            $result[] = (int) $category->id;
-            if (!empty($category->subcategories)) {
-                $result = array_merge($result, $this->collectCategoryIds($category->subcategories));
-            }
-        }
-        return $result;
     }
 
     private function checkApiKeyStatus(string $apiKey): bool

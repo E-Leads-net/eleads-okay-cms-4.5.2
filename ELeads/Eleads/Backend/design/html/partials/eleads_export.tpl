@@ -28,6 +28,19 @@
 <div class="row">
     <div class="col-lg-12 col-md-12">
         <div class="heading_label">
+            <strong>{$btr->okaycms__eleads_yml_feed__grouped_title|escape}</strong>
+        </div>
+        <label class="eleads_tree_label">
+            <input type="checkbox" name="eleads__yml_feed__grouped" value="1" {if $grouped_products}checked{/if}>
+            <span>{$btr->okaycms__eleads_yml_feed__grouped_label|escape}</span>
+        </label>
+        <div class="eleads_divider"></div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="heading_label">
             <strong>{$btr->okaycms__eleads_yml_feed__categories|escape}</strong>
         </div>
         <div class="boxed eleads_scrollbox eleads_section">

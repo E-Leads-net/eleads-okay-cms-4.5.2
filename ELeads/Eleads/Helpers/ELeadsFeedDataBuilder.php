@@ -131,7 +131,7 @@ class ELeadsFeedDataBuilder
             $categoriesById[$category->id] = $category;
         }
         if (empty($selectedCategoryIds)) {
-            $selectedCategoryIds = $allCategoryIds;
+            return [[], []];
         }
         $selectedCategoryIds = array_values(array_unique(array_map('intval', $selectedCategoryIds)));
 
@@ -155,6 +155,7 @@ class ELeadsFeedDataBuilder
         $shopUrl = $settings->get('eleads__yml_feed__shop_url') ?: Request::getRootUrl();
         $currencyCode = $settings->get('eleads__yml_feed__currency');
         $pictureLimit = $settings->get('eleads__yml_feed__picture_limit');
+        $groupedProducts = $settings->get('eleads__yml_feed__grouped');
         if ($pictureLimit === null || $pictureLimit === '') {
             $pictureLimit = 5;
         }
@@ -170,6 +171,7 @@ class ELeadsFeedDataBuilder
             'shop_url' => $shopUrl,
             'currency_code' => $currencyCode,
             'picture_limit' => (int) $pictureLimit,
+            'grouped_products' => $groupedProducts === null || $groupedProducts === '' ? true : (bool) $groupedProducts,
         ];
     }
 

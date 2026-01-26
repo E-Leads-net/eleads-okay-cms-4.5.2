@@ -49,6 +49,7 @@ class ELeadsController extends AbstractController
         $shopUrl = $feedSettings['shop_url'];
         $currencyCode = $feedSettings['currency_code'];
         $pictureLimit = $feedSettings['picture_limit'];
+        $groupedProducts = (bool) $feedSettings['grouped_products'];
 
         $selectedCategoryIds = (array) $this->settings->get('eleads__yml_feed__categories');
         [$exportCategories, $selectedCategorySet] = ELeadsFeedDataBuilder::buildExportCategories(
@@ -86,7 +87,8 @@ class ELeadsController extends AbstractController
             $lang,
             $shortDescriptionSource,
             $money,
-            $this->config
+            $this->config,
+            $groupedProducts
         );
 
         $this->design->assign('feed_date', date('Y-m-d H:i'));
