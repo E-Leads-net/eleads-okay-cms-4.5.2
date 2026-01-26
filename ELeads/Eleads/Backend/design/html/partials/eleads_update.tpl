@@ -45,12 +45,9 @@
             {/if}
 
             {if $update_info.update_available}
-                <form method="post" action="{$update_action_url|escape}">
-                    <input type="hidden" name="session_id" value="{$smarty.session.id}">
-                    <button type="submit" class="btn btn_small btn_blue">
-                        <span>{$btr->okaycms__eleads_update__button|escape}</span>
-                    </button>
-                </form>
+                <button type="submit" class="btn btn_small btn_blue" formaction="{$update_action_url|escape}" formmethod="post">
+                    <span>{$btr->okaycms__eleads_update__button|escape}</span>
+                </button>
             {else}
                 <div class="text_muted small">{$btr->okaycms__eleads_update__up_to_date|escape}</div>
             {/if}
