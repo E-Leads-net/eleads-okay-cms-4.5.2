@@ -37,6 +37,30 @@
     .eleads_feed_url_row .heading_label {
         margin-bottom: 2px;
     }
+    .eleads_feed_url_label {
+        padding-right: 6px;
+    }
+    .eleads_feed_url_input {
+        padding-left: 6px;
+    }
+    .eleads_feed_actions .input-group-append {
+        display: flex;
+        align-items: stretch;
+        gap: 6px;
+        margin-left: 6px;
+    }
+    .eleads_feed_actions {
+        padding-right: 20%;
+    }
+    .eleads_feed_actions .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border-radius: 4px;
+    }
     .fn_clipboard i {
         pointer-events: none;
     }

@@ -5,36 +5,26 @@
         </div>
         {foreach $languages as $language}
             <div class="row mb-1 eleads_feed_url_row">
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-2 col-md-3 eleads_feed_url_label">
                     <label class="heading_label">
                         {$language->name|escape} ({$language->label|escape})
                     </label>
                 </div>
-                <div class="col-lg-9 col-md-8">
-                    <div class="input-group">
+                <div class="col-lg-10 col-md-9 eleads_feed_url_input">
+                    <div class="input-group eleads_feed_actions">
                         <input class="form-control" type="text" value="{$feed_urls[$language->id]|escape}" readonly>
                         <div class="input-group-append">
-                            <a href="#" class="btn btn_small btn-info fn_clipboard fn_eleads_copy_url hint-bottom-middle-t-info-s-small-mobile" data-copy-string="{$feed_urls[$language->id]|escape}" data-hint="Click to copy" data-hint-copied="✔ Copied to clipboard">
+                            <a href="#" class="btn btn_small btn-info fn_eleads_action fn_clipboard fn_eleads_copy_url hint-bottom-middle-t-info-s-small-mobile" data-copy-string="{$feed_urls[$language->id]|escape}" data-hint="Click to copy" data-hint-copied="✔ Copied to clipboard">
                                 <i class="fa fa-copy"></i>
+                            </a>
+                            <a href="{$feed_urls[$language->id]|escape}" class="btn btn_small btn-info fn_eleads_action" download="eleads-feed-{$language->label|escape}.xml">
+                                <i class="fa fa-download"></i>
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
         {/foreach}
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-lg-12 col-md-12">
-        <div class="heading_label">
-            <strong>{$btr->okaycms__eleads_yml_feed__grouped_title|escape}</strong>
-        </div>
-        <label class="eleads_tree_label">
-            <input type="checkbox" name="eleads__yml_feed__grouped" value="1" {if $grouped_products}checked{/if}>
-            <span>{$btr->okaycms__eleads_yml_feed__grouped_label|escape}</span>
-        </label>
-        <div class="eleads_divider"></div>
     </div>
 </div>
 
@@ -79,10 +69,14 @@
             <strong>{$btr->okaycms__eleads_yml_feed__filter_features|escape}</strong>
         </div>
         <div class="mb-1">
-            <label class="eleads_tree_label">
-                <input class="fn_eleads_toggle_section" type="checkbox" name="eleads__yml_feed__filter_features_enabled" value="1" {if $selected_features|count}checked{/if}>
-                <span>{$btr->okaycms__eleads_yml_feed__enable_filter_features|escape}</span>
-            </label>
+            <div class="okay_switch clearfix">
+                <label class="switch_label">{$btr->okaycms__eleads_yml_feed__enable_filter_features|escape}</label>
+                <label class="switch switch-default">
+                    <input class="switch-input fn_eleads_toggle_section" type="checkbox" name="eleads__yml_feed__filter_features_enabled" value="1" {if $selected_features|count}checked{/if}>
+                    <span class="switch-label"></span>
+                    <span class="switch-handle"></span>
+                </label>
+            </div>
         </div>
         <div class="boxed eleads_scrollbox eleads_section fn_eleads_features_section">
             <ul class="eleads_list">
@@ -114,10 +108,14 @@
             <strong>{$btr->okaycms__eleads_yml_feed__filter_options|escape}</strong>
         </div>
         <div class="mb-1">
-            <label class="eleads_tree_label">
-                <input class="fn_eleads_toggle_section" type="checkbox" name="eleads__yml_feed__filter_options_enabled" value="1" {if $selected_feature_values|count}checked{/if}>
-                <span>{$btr->okaycms__eleads_yml_feed__enable_filter_options|escape}</span>
-            </label>
+            <div class="okay_switch clearfix">
+                <label class="switch_label">{$btr->okaycms__eleads_yml_feed__enable_filter_options|escape}</label>
+                <label class="switch switch-default">
+                    <input class="switch-input fn_eleads_toggle_section" type="checkbox" name="eleads__yml_feed__filter_options_enabled" value="1" {if $selected_feature_values|count}checked{/if}>
+                    <span class="switch-label"></span>
+                    <span class="switch-handle"></span>
+                </label>
+            </div>
         </div>
         <div class="boxed eleads_scrollbox eleads_section fn_eleads_options_section">
             <ul class="eleads_list">
@@ -138,6 +136,23 @@
         </div>
         <div class="text_muted small mt-1 fn_eleads_options_section">
             {$btr->okaycms__eleads_yml_feed__filter_options_hint|escape}
+        </div>
+        <div class="eleads_divider"></div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="heading_label">
+            <strong>{$btr->okaycms__eleads_yml_feed__grouped_title|escape}</strong>
+        </div>
+        <div class="okay_switch clearfix">
+            <label class="switch_label">{$btr->okaycms__eleads_yml_feed__grouped_label|escape}</label>
+            <label class="switch switch-default">
+                <input class="switch-input" type="checkbox" name="eleads__yml_feed__grouped" value="1" {if $grouped_products}checked{/if}>
+                <span class="switch-label"></span>
+                <span class="switch-handle"></span>
+            </label>
         </div>
         <div class="eleads_divider"></div>
     </div>
