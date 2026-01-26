@@ -68,6 +68,7 @@
                     <div class="tab_navigation">
                         <a href="#tab_export" class="heading_box tab_navigation_link">{$btr->okaycms__eleads_yml_feed__tab_export|escape}</a>
                         <a href="#tab_api_key" class="heading_box tab_navigation_link">{$btr->okaycms__eleads_yml_feed__tab_api_key|escape}</a>
+                        <a href="#tab_update" class="heading_box tab_navigation_link">{$btr->okaycms__eleads_yml_feed__tab_update|escape}</a>
                     </div>
                     <div class="toggle_arrow_wrap fn_toggle_card text-primary">
                         <a class="btn-minimize" href="javascript:;"><i class="fa fn_icon_arrow fa-angle-down"></i></a>
@@ -80,6 +81,9 @@
                         </div>
                         <div id="tab_api_key" class="tab">
                             {include file='partials/eleads_api_key.tpl'}
+                        </div>
+                        <div id="tab_update" class="tab">
+                            {include file='partials/eleads_update.tpl'}
                         </div>
                     </div>
                     <div class="row">

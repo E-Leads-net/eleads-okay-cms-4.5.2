@@ -21,6 +21,8 @@ class Init extends AbstractInit
         $this->setBackendMainController('ELeadsAdmin');
         $this->addPermission(self::PERMISSION);
         $this->registerBackendController('ELeadsAdmin');
+        $this->registerBackendController('ELeadsUpdateAdmin');
         $this->addBackendControllerPermission('ELeadsAdmin', self::PERMISSION);
+        $this->addBackendControllerPermission('ELeadsUpdateAdmin', self::PERMISSION);
     }
 }

@@ -12,6 +12,7 @@ use Okay\Entities\FeaturesEntity;
 use Okay\Entities\FeaturesValuesEntity;
 use Okay\Entities\LanguagesEntity;
 use Okay\Modules\ELeads\Eleads\Config\ELeadsApiRoutes;
+use Okay\Modules\ELeads\Eleads\Helpers\ELeadsUpdateHelper;
 
 class ELeadsAdmin extends IndexAdmin
 {
@@ -64,6 +65,10 @@ class ELeadsAdmin extends IndexAdmin
 
             $this->design->assign('message_success', 'saved');
         }
+        if ($this->request->get('update_result')) {
+            $this->design->assign('update_result', $this->request->get('update_result'));
+            $this->design->assign('update_message', $this->request->get('update_message'));
+        }
 
         $categories = $categoriesEntity->getCategoriesTree();
         $selectedCategories = (array) $this->settings->get('eleads__yml_feed__categories');
@@ -86,6 +91,8 @@ class ELeadsAdmin extends IndexAdmin
             $label = $language->label === 'ua' ? 'uk' : $language->label;
             $feedUrls[$language->id] = rtrim($rootUrl, '/') . '/eleads-yml/' . $label . '.xml';
         }
+        $updateInfo = ELeadsUpdateHelper::getUpdateInfo();
+        $updateActionUrl = Request::getRootUrl() . '/backend/index.php?controller=ELeads.Eleads.ELeadsUpdateAdmin';
 
         $this->design->assign('categories', $categories);
         $this->design->assign('features', $features);
@@ -102,6 +109,8 @@ class ELeadsAdmin extends IndexAdmin
         $this->design->assign('api_key_required', !$apiKeyValid);
         $this->design->assign('api_key_value', $apiKeySubmitted !== null ? $apiKeySubmitted : $apiKey);
         $this->design->assign('api_key_error', $apiKeyError);
+        $this->design->assign('update_info', $updateInfo);
+        $this->design->assign('update_action_url', $updateActionUrl);
 
         $this->response->setContent($this->design->fetch('e_leads.tpl'));
     }
