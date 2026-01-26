@@ -41,6 +41,7 @@ class ELeadsController extends AbstractController
             return false;
         }
 
+        $feedLanguage = $lang === 'ua' ? 'uk' : $lang;
         ELeadsFeedDataBuilder::resolveLanguage($languagesEntity, $languages, $lang);
 
         $feedSettings = ELeadsFeedDataBuilder::buildFeedSettings($this->settings, $currenciesEntity);
@@ -93,7 +94,7 @@ class ELeadsController extends AbstractController
             $this->design->assign('shop_name', $shopName);
             $this->design->assign('email', $email);
             $this->design->assign('shop_url', $shopUrl);
-            $this->design->assign('language', $lang);
+        $this->design->assign('language', $feedLanguage);
             $this->design->assign('categories', $exportCategories);
             $this->design->assign('offers', $offers);
 

@@ -138,7 +138,8 @@ class ELeadsFeedDataBuilder
         Languages $languages,
         string $lang
     ): void {
-        $currentLanguage = $languagesEntity->findOne(['label' => $lang]);
+        $lookupLabel = $lang === 'uk' ? 'ua' : $lang;
+        $currentLanguage = $languagesEntity->findOne(['label' => $lookupLabel]);
         if (!empty($currentLanguage->id)) {
             $languages->setLangId((int) $currentLanguage->id);
         }

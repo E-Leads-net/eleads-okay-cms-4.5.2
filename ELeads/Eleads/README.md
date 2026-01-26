@@ -21,14 +21,14 @@
 ```
 
 Примеры:
-- `/eleads-yml/ua.xml`
+- `/eleads-yml/uk.xml`
 - `/eleads-yml/ru.xml`
 - `/eleads-yml/en.xml`
 
 Если задан ключ доступа, используйте:
 
 ```
-/eleads-yml/ua.xml?key=ВАШ_КЛЮЧ
+/eleads-yml/uk.xml?key=ВАШ_КЛЮЧ
 ```
 
 ## Настройки в админке

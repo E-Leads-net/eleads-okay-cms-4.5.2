@@ -83,7 +83,8 @@ class ELeadsAdmin extends IndexAdmin
         $rootUrl = Request::getRootUrl();
         $feedUrls = [];
         foreach ($languages as $language) {
-            $feedUrls[$language->id] = rtrim($rootUrl, '/') . '/eleads-yml/' . $language->label . '.xml';
+            $label = $language->label === 'ua' ? 'uk' : $language->label;
+            $feedUrls[$language->id] = rtrim($rootUrl, '/') . '/eleads-yml/' . $label . '.xml';
         }
 
         $this->design->assign('categories', $categories);
