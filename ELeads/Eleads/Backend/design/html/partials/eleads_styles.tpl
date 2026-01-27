@@ -47,7 +47,14 @@
         display: flex;
         align-items: stretch;
         gap: 6px;
-        margin-left: 6px;
+        margin-left: 10px;
+    }
+    .eleads_feed_actions .form-control {
+        border-width: 1px;
+        border-style: solid;
+        border-color: #ccd4d9;
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
     }
     .eleads_feed_actions {
         padding-right: 20%;
@@ -60,6 +67,11 @@
         height: 34px;
         padding: 0;
         border-radius: 4px;
+    }
+    .eleads_sync_active .form-control {
+        border-color: #3c763d;
+        background: #eef8f1;
+        box-shadow: inset 0 0 0 1px rgba(60,118,61,0.15);
     }
     .fn_clipboard i {
         pointer-events: none;

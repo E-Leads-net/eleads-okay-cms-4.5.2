@@ -11,7 +11,7 @@
                     </label>
                 </div>
                 <div class="col-lg-10 col-md-9 eleads_feed_url_input">
-                    <div class="input-group eleads_feed_actions">
+                    <div class="input-group eleads_feed_actions{if $sync_enabled} eleads_sync_active{/if}">
                         <input class="form-control" type="text" value="{$feed_urls[$language->id]|escape}" readonly>
                         <div class="input-group-append">
                             <a href="#" class="btn btn_small btn-info fn_eleads_action fn_clipboard fn_eleads_copy_url hint-bottom-middle-t-info-s-small-mobile" data-copy-string="{$feed_urls[$language->id]|escape}" data-hint="Click to copy" data-hint-copied="✔ Copied to clipboard">

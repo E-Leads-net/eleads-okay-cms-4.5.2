@@ -112,6 +112,14 @@
         $('.fn_eleads_category').each(function() {
             updateParents($(this).data('category-id'), categoryMap, categoryInputs);
         });
+
+        function updateSyncHighlight() {
+            var enabled = $('input[name="eleads__sync_enabled"]').is(':checked');
+            $('.eleads_feed_actions').toggleClass('eleads_sync_active', enabled);
+        }
+
+        updateSyncHighlight();
+        $(document).on('change', 'input[name="eleads__sync_enabled"]', updateSyncHighlight);
     });
 </script>
 {/literal}
