@@ -56,6 +56,7 @@ class ELeadsAdmin extends IndexAdmin
             $this->settings->set('eleads__yml_feed__filter_features', (array) $this->request->post('eleads__yml_feed__filter_features'));
             $this->settings->set('eleads__yml_feed__filter_options', (array) $this->request->post('eleads__yml_feed__filter_options'));
             $this->settings->set('eleads__yml_feed__grouped', $this->request->post('eleads__yml_feed__grouped') ? 1 : 0);
+            $this->settings->set('eleads__sync_enabled', $this->request->post('eleads__sync_enabled') ? 1 : 0);
             $this->settings->set('eleads__yml_feed__access_key', $this->request->post('eleads__yml_feed__access_key', 'string'));
             $this->settings->set('eleads__yml_feed__shop_name', $this->request->post('eleads__yml_feed__shop_name'));
             $this->settings->set('eleads__yml_feed__email', $this->request->post('eleads__yml_feed__email'));
@@ -105,6 +106,11 @@ class ELeadsAdmin extends IndexAdmin
             $groupedProducts = 1;
         }
         $this->design->assign('grouped_products', (int) $groupedProducts);
+        $syncEnabled = $this->settings->get('eleads__sync_enabled');
+        if ($syncEnabled === null || $syncEnabled === '') {
+            $syncEnabled = 0;
+        }
+        $this->design->assign('sync_enabled', (int) $syncEnabled);
         $this->design->assign('default_shop_name', $defaultShopName);
         $this->design->assign('default_email', $defaultEmail);
         $this->design->assign('default_currency', $defaultCurrency);

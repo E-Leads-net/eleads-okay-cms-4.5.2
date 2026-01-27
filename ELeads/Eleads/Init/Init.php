@@ -5,6 +5,8 @@ namespace Okay\Modules\ELeads\Eleads\Init;
 
 
 use Okay\Core\Modules\AbstractInit;
+use Okay\Entities\ProductsEntity;
+use Okay\Modules\ELeads\Eleads\Extenders\ProductsEntityExtender;
 
 class Init extends AbstractInit
 {
@@ -24,5 +26,18 @@ class Init extends AbstractInit
         $this->registerBackendController('ELeadsUpdateAdmin');
         $this->addBackendControllerPermission('ELeadsAdmin', self::PERMISSION);
         $this->addBackendControllerPermission('ELeadsUpdateAdmin', self::PERMISSION);
+
+        $this->registerQueueExtension(
+            [ProductsEntity::class, 'update'],
+            [ProductsEntityExtender::class, 'afterUpdate']
+        );
+        $this->registerQueueExtension(
+            [ProductsEntity::class, 'add'],
+            [ProductsEntityExtender::class, 'afterAdd']
+        );
+        $this->registerQueueExtension(
+            [ProductsEntity::class, 'delete'],
+            [ProductsEntityExtender::class, 'afterDelete']
+        );
     }
 }

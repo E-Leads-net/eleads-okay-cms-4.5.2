@@ -177,6 +177,11 @@ class ELeadsUpdateHelper
             return ['ok' => false, 'message' => 'Failed to update files'];
         }
 
+        $updatedVersion = self::getLocalVersion();
+        if ($updatedVersion !== '') {
+            self::updateInstalledVersion($updatedVersion);
+        }
+
         return ['ok' => true, 'message' => 'Updated'];
     }
 
@@ -245,6 +250,23 @@ class ELeadsUpdateHelper
                 }
             }
             @rmdir($extractDir);
+        }
+    }
+
+    private static function updateInstalledVersion(string $version): void
+    {
+        try {
+            $serviceLocator = \Okay\Core\ServiceLocator::getInstance();
+            /** @var \Okay\Core\EntityFactory $entityFactory */
+            $entityFactory = $serviceLocator->getService(\Okay\Core\EntityFactory::class);
+            /** @var \Okay\Entities\ModulesEntity $modulesEntity */
+            $modulesEntity = $entityFactory->get(\Okay\Entities\ModulesEntity::class);
+
+            $module = $modulesEntity->getByVendorModuleName('ELeads', 'Eleads');
+            if (!empty($module->id)) {
+                $modulesEntity->update((int) $module->id, ['version' => $version]);
+            }
+        } catch (\Throwable $e) {
         }
     }
 }

@@ -3,7 +3,7 @@
         <div class="heading_label">
             <strong>{$btr->okaycms__eleads_yml_feed__feed_urls|escape}</strong>
         </div>
-        {foreach $languages as $language}
+{foreach $languages as $language}
             <div class="row mb-1 eleads_feed_url_row">
                 <div class="col-lg-2 col-md-3 eleads_feed_url_label">
                     <label class="heading_label">
@@ -25,6 +25,23 @@
                 </div>
             </div>
         {/foreach}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 col-md-12">
+        <div class="heading_label">
+            <strong>{$btr->okaycms__eleads_yml_feed__sync_title|escape}</strong>
+        </div>
+        <div class="okay_switch clearfix">
+            <label class="switch_label">{$btr->okaycms__eleads_yml_feed__sync_label|escape}</label>
+            <label class="switch switch-default">
+                <input class="switch-input" type="checkbox" name="eleads__sync_enabled" value="1" {if $sync_enabled}checked{/if}>
+                <span class="switch-label"></span>
+                <span class="switch-handle"></span>
+            </label>
+        </div>
+        <div class="eleads_divider"></div>
     </div>
 </div>
 
