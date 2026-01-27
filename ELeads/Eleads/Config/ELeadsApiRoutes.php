@@ -6,9 +6,9 @@ namespace Okay\Modules\ELeads\Eleads\Config;
 
 class ELeadsApiRoutes
 {
-    public const TOKEN_STATUS = 'https://stage-dashboard.e-leads.net/api/ecommerce/token/status';
-    public const ECOMMERCE_ITEMS = 'https://stage-dashboard.e-leads.net/api/ecommerce/items';
-    public const WIDGETS_LOADER_TAG = 'https://stage-api.e-leads.net/v1/widgets-loader-tag';
+    public const TOKEN_STATUS = 'https://dashboard.e-leads.net/api/ecommerce/token/status';
+    public const ECOMMERCE_ITEMS = 'https://dashboard.e-leads.net/api/ecommerce/items';
+    public const WIDGETS_LOADER_TAG = 'https://api.e-leads.net/v1/widgets-loader-tag';
     public const GITHUB_REPO = 'E-Leads-net/eleads-okay-cms-4.5.2';
     public const GITHUB_REPO_URL = 'https://github.com/' . self::GITHUB_REPO;
     public const GITHUB_API_BASE = 'https://api.github.com/repos/' . self::GITHUB_REPO;
