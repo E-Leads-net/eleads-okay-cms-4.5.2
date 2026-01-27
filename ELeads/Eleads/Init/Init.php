@@ -5,8 +5,13 @@ namespace Okay\Modules\ELeads\Eleads\Init;
 
 
 use Okay\Core\Modules\AbstractInit;
+use Okay\Core\ServiceLocator;
+use Okay\Core\Settings;
+use Okay\Entities\ModulesEntity;
 use Okay\Entities\ProductsEntity;
+use Okay\Modules\ELeads\Eleads\Extenders\ModulesEntityExtender;
 use Okay\Modules\ELeads\Eleads\Extenders\ProductsEntityExtender;
+use Okay\Modules\ELeads\Eleads\Helpers\SyncWidgetsTagHelper;
 
 class Init extends AbstractInit
 {
@@ -39,5 +44,23 @@ class Init extends AbstractInit
             [ProductsEntity::class, 'delete'],
             [ProductsEntityExtender::class, 'afterDelete']
         );
+        $this->registerQueueExtension(
+            [ModulesEntity::class, 'update'],
+            [ModulesEntityExtender::class, 'afterUpdate']
+        );
+        $this->registerQueueExtension(
+            [ModulesEntity::class, 'enable'],
+            [ModulesEntityExtender::class, 'afterEnable']
+        );
+        $this->registerQueueExtension(
+            [ModulesEntity::class, 'disable'],
+            [ModulesEntityExtender::class, 'afterDisable']
+        );
+
+        $serviceLocator = ServiceLocator::getInstance();
+        /** @var Settings $settings */
+        $settings = $serviceLocator->getService(Settings::class);
+        $widgetHelper = new SyncWidgetsTagHelper($settings);
+        $widgetHelper->ensureInstalled();
     }
 }
