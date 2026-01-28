@@ -125,12 +125,23 @@ class SyncPayloadBuilder
             'external_id' => $category ? (string) $category->id : '',
             'external_url' => $category ? $this->router->generateUrl('category', ['url' => $category->url], true, $langId) : '',
             'external_parent_id' => $category && !empty($category->parent_id) ? (string) $category->parent_id : '',
+            'external_name' => $category ? (string) $category->name : '',
+            'external_parent_name' => '',
+            'external_parent_url' => '',
             'position' => $category ? (int) ($category->position ?? 0) : 0,
+            'parent_position' => 0,
             'full_path' => '',
             'path' => [],
         ];
 
         if ($category) {
+            if (!empty($category->parent_id) && isset($categoriesById[$category->parent_id])) {
+                $parentCategory = $categoriesById[$category->parent_id];
+                $categoryPayload['external_parent_name'] = (string) $parentCategory->name;
+                $categoryPayload['external_parent_url'] = $this->router->generateUrl('category', ['url' => $parentCategory->url], true, $langId);
+                $categoryPayload['parent_position'] = (int) ($parentCategory->position ?? 0);
+            }
+
             $pathNames = [];
             $current = $category;
             while ($current) {
