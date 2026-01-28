@@ -69,7 +69,7 @@ If an access key is configured:
     <url>...</url>
     <language>...</language>
     <categories>
-      <category id="..." parentId="..." position="..." url="...">...</category>
+      <category id="..." parentId="..." url="...">...</category>
     </categories>
     <offers>
       <offer id="..." group_id="..." available="true|false">
@@ -95,11 +95,24 @@ If an access key is configured:
   </shop>
 </yml_catalog>
 ```
+
+## Synchronization (E‑Leads API)
+When synchronization is enabled:
+- **Create** product → `POST https://stage-dashboard.e-leads.net/api/ecommerce/items`
+- **Update** product → `PUT https://stage-dashboard.e-leads.net/api/ecommerce/items/{external_id}`
+- **Delete** product → `DELETE https://stage-dashboard.e-leads.net/api/ecommerce/items/{external_id}`
+
+Payload basics:
+- `language` is taken from the current admin language.
+- If the admin language label is `ua`, the payload language is sent as `uk`.
+
+Requests use the **API Key** as Bearer token.
+
 ## Widget Loader Tag Injection
 On module enable:
 - The module requests the loader tag from:
   ```
-  https://api.e-leads.net/v1/widgets-loader-tag
+  https://stage-api.e-leads.net/v1/widgets-loader-tag
   ```
 - The tag is injected into the current theme `index.tpl` (before `</body>`, or appended if not found).
 

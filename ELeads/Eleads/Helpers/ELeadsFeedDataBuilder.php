@@ -139,6 +139,7 @@ class ELeadsFeedDataBuilder
         $exportCategories = [];
         foreach ($allCategories as $category) {
             if (isset($categoriesToExport[$category->id])) {
+                $category->position = isset($category->position) ? (int) $category->position : 0;
                 $exportCategories[] = $category;
             }
         }

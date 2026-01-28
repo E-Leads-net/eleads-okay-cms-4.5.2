@@ -125,6 +125,7 @@ class SyncPayloadBuilder
             'external_id' => $category ? (string) $category->id : '',
             'external_url' => $category ? $this->router->generateUrl('category', ['url' => $category->url], true, $langId) : '',
             'external_parent_id' => $category && !empty($category->parent_id) ? (string) $category->parent_id : '',
+            'position' => $category ? (int) ($category->position ?? 0) : 0,
             'full_path' => '',
             'path' => [],
         ];

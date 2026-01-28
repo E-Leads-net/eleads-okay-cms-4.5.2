@@ -7,7 +7,7 @@
 <language>{$language|escape}</language>
 <categories>
 {foreach $categories as $category}
-<category id="{$category->id}"{if $category->parent_id} parentId="{$category->parent_id}"{/if} url="{url_generator route='category' url=$category->url absolute=1}">{$category->name|escape}</category>
+<category id="{$category->id}"{if $category->parent_id} parentId="{$category->parent_id}"{/if} position="{$category->position}" url="{url_generator route='category' url=$category->url absolute=1}">{$category->name|escape}</category>
 {/foreach}
 </categories>
 <offers>
