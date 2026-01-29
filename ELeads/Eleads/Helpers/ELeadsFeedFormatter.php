@@ -86,21 +86,63 @@ class ELeadsFeedFormatter
         return $params;
     }
 
-    public static function buildImageUrls(Config $config, array $images, int $limit): array
+    public static function buildImageUrls(
+        Config $config,
+        array $images,
+        int $limit,
+        string $imageSize = 'original'
+    ): array
     {
         if (empty($images)) {
             return [];
         }
         $rootUrl = Request::getRootUrl();
+        $imageSize = trim($imageSize);
+        $useOriginal = $imageSize === '' || $imageSize === 'original';
         $originalDir = $config->get('original_images_dir');
+        $resizedDir = $config->get('resized_images_dir');
         $urls = [];
         foreach ($images as $image) {
             if ($limit > 0 && count($urls) >= $limit) {
                 break;
             }
-            $urls[] = rtrim($rootUrl, '/') . '/' . $originalDir . $image->filename;
+            $filename = $image->filename;
+            if (!$useOriginal) {
+                $resizedFilename = self::buildResizedFilename($filename, $imageSize);
+                if ($resizedFilename !== null) {
+                    $filename = $resizedFilename;
+                } else {
+                    $useOriginal = true;
+                }
+            }
+            $dir = $useOriginal ? $originalDir : $resizedDir;
+            $urls[] = rtrim($rootUrl, '/') . '/' . $dir . $filename;
         }
         return $urls;
+    }
+
+    private static function buildResizedFilename(string $filename, string $size): ?string
+    {
+        $size = trim($size);
+        if ($size === '') {
+            return null;
+        }
+        if (!preg_match('/^(\\d*)x(\\d*)(w?)$/', $size, $matches)) {
+            return null;
+        }
+
+        $width = $matches[1];
+        $height = $matches[2];
+        $watermark = $matches[3] ?? '';
+
+        $dirname = pathinfo($filename, PATHINFO_DIRNAME);
+        $file = pathinfo($filename, PATHINFO_FILENAME);
+        if ($dirname !== '.' && $dirname !== '') {
+            $file = $dirname . '/' . $file;
+        }
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        $resizedFilename = $file . '.' . $width . 'x' . $height . ($watermark !== '' ? 'w' : '') . '.' . $ext;
+        return $resizedFilename;
     }
 
     public static function resolveShortDescription($product, string $source): string

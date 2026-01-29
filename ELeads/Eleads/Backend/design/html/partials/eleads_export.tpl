@@ -176,6 +176,22 @@
 </div>
 
 <div class="row">
+    <div class="col-lg-3 col-md-3">
+        <div class="form-group">
+            <div class="heading_label">
+                <span>{$btr->okaycms__eleads_yml_feed__image_size|escape}</span>
+            </div>
+            <select class="selectpicker form-control" name="eleads__yml_feed__image_size">
+                <option value="original" {if $selected_image_size == 'original'}selected{/if}>{$btr->okaycms__eleads_yml_feed__image_size_original|escape}</option>
+                {foreach $image_sizes as $size}
+                    <option value="{$size|escape}" {if $selected_image_size == $size}selected{/if}>{$size|escape}</option>
+                {/foreach}
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <div class="col-lg-6 col-md-6">
         <div class="form-group">
             <div class="heading_label">

@@ -156,9 +156,17 @@ class ELeadsFeedDataBuilder
         $shopUrl = $settings->get('eleads__yml_feed__shop_url') ?: Request::getRootUrl();
         $currencyCode = $settings->get('eleads__yml_feed__currency');
         $pictureLimit = $settings->get('eleads__yml_feed__picture_limit');
+        $imageSize = (string) $settings->get('eleads__yml_feed__image_size');
         $groupedProducts = $settings->get('eleads__yml_feed__grouped');
         if ($pictureLimit === null || $pictureLimit === '') {
             $pictureLimit = 5;
+        }
+        if ($imageSize === '') {
+            $imageSize = 'original';
+        }
+        $availableSizes = array_filter(array_map('trim', explode('|', (string) $settings->get('products_image_sizes'))));
+        if ($imageSize !== 'original' && !in_array($imageSize, $availableSizes, true)) {
+            $imageSize = 'original';
         }
 
         $mainCurrency = $currenciesEntity->getMainCurrency();
@@ -172,6 +180,7 @@ class ELeadsFeedDataBuilder
             'shop_url' => $shopUrl,
             'currency_code' => $currencyCode,
             'picture_limit' => (int) $pictureLimit,
+            'image_size' => $imageSize,
             'grouped_products' => $groupedProducts === null || $groupedProducts === '' ? true : (bool) $groupedProducts,
         ];
     }

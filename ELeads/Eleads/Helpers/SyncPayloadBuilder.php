@@ -186,12 +186,15 @@ class SyncPayloadBuilder
             }
         }
 
-        $imagesList = [];
-        $rootUrl = Request::getRootUrl();
-        $originalDir = $this->config->get('original_images_dir');
-        foreach ($images as $image) {
-            $imagesList[] = rtrim($rootUrl, '/') . '/' . $originalDir . $image->filename;
+        $imageSize = (string) $this->settings->get('eleads__yml_feed__image_size');
+        if ($imageSize === '') {
+            $imageSize = 'original';
         }
+        $availableSizes = array_filter(array_map('trim', explode('|', (string) $this->settings->get('products_image_sizes'))));
+        if ($imageSize !== 'original' && !in_array($imageSize, $availableSizes, true)) {
+            $imageSize = 'original';
+        }
+        $imagesList = ELeadsFeedFormatter::buildImageUrls($this->config, $images, 0, $imageSize);
 
         $shortDescriptionSource = (string) $this->settings->get('eleads__yml_feed__short_description_source');
         $shortDescription = ELeadsFeedFormatter::resolveShortDescription($product, $shortDescriptionSource);

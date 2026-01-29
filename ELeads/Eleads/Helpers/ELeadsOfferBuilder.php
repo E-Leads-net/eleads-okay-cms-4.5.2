@@ -21,6 +21,7 @@ class ELeadsOfferBuilder
         array $selectedFeatureValueSet,
         string $currencyCode,
         int $pictureLimit,
+        string $imageSize,
         string $lang,
         string $shortDescriptionSource,
         Money $money,
@@ -63,7 +64,7 @@ class ELeadsOfferBuilder
             }
 
             $productImages = $imagesByProduct[$product->id] ?? [];
-            $pictures = ELeadsFeedFormatter::buildImageUrls($config, $productImages, $pictureLimit);
+            $pictures = ELeadsFeedFormatter::buildImageUrls($config, $productImages, $pictureLimit, $imageSize);
 
             $productFeatures = $featureMap[$product->id] ?? [];
 

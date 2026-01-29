@@ -49,6 +49,7 @@ class ELeadsController extends AbstractController
         $shopUrl = $feedSettings['shop_url'];
         $currencyCode = $feedSettings['currency_code'];
         $pictureLimit = $feedSettings['picture_limit'];
+        $imageSize = $feedSettings['image_size'];
         $groupedProducts = (bool) $feedSettings['grouped_products'];
 
         $selectedCategoryIds = (array) $this->settings->get('eleads__yml_feed__categories');
@@ -84,6 +85,7 @@ class ELeadsController extends AbstractController
             $selectedFeatureValueSet,
             $currencyCode,
             (int) $pictureLimit,
+            $imageSize,
             $lang,
             $shortDescriptionSource,
             $money,

@@ -63,6 +63,7 @@ class ELeadsAdmin extends IndexAdmin
             $this->settings->set('eleads__yml_feed__shop_url', $this->request->post('eleads__yml_feed__shop_url'));
             $this->settings->set('eleads__yml_feed__currency', $this->request->post('eleads__yml_feed__currency'));
             $this->settings->set('eleads__yml_feed__picture_limit', $this->request->post('eleads__yml_feed__picture_limit', 'integer'));
+            $this->settings->set('eleads__yml_feed__image_size', $this->request->post('eleads__yml_feed__image_size', 'string'));
             $this->settings->set('eleads__yml_feed__short_description_source', $this->request->post('eleads__yml_feed__short_description_source'));
 
             $this->design->assign('message_success', 'saved');
@@ -80,6 +81,15 @@ class ELeadsAdmin extends IndexAdmin
         $mainCurrency = $currenciesEntity->getMainCurrency();
         $defaultCurrency = $mainCurrency ? $mainCurrency->code : '';
         $defaultPictureLimit = 5;
+        $imageSizesRaw = (string) $this->settings->get('products_image_sizes');
+        $imageSizes = array_values(array_filter(array_map('trim', explode('|', $imageSizesRaw))));
+        $selectedImageSize = (string) $this->settings->get('eleads__yml_feed__image_size');
+        if ($selectedImageSize === '') {
+            $selectedImageSize = 'original';
+        }
+        if ($selectedImageSize !== 'original' && !in_array($selectedImageSize, $imageSizes, true)) {
+            $selectedImageSize = 'original';
+        }
         $features = $featuresEntity->find();
         $featureValues = $featuresValuesEntity->find();
         $languages = $languagesEntity->mappedBy('id')->find();
@@ -115,6 +125,8 @@ class ELeadsAdmin extends IndexAdmin
         $this->design->assign('default_email', $defaultEmail);
         $this->design->assign('default_currency', $defaultCurrency);
         $this->design->assign('default_picture_limit', $defaultPictureLimit);
+        $this->design->assign('image_sizes', $imageSizes);
+        $this->design->assign('selected_image_size', $selectedImageSize);
         $this->design->assign('api_key_required', !$apiKeyValid);
         $this->design->assign('api_key_value', $apiKeySubmitted !== null ? $apiKeySubmitted : $apiKey);
         $this->design->assign('api_key_error', $apiKeyError);
