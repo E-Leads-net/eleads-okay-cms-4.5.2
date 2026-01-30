@@ -95,10 +95,16 @@ class ELeadsAdmin extends IndexAdmin
         $languages = $languagesEntity->mappedBy('id')->find();
 
         $rootUrl = Request::getRootUrl();
+        $accessKey = (string) $this->settings->get('eleads__yml_feed__access_key');
+        $accessKey = trim($accessKey);
         $feedUrls = [];
         foreach ($languages as $language) {
             $label = $language->label === 'ua' ? 'uk' : $language->label;
-            $feedUrls[$language->id] = rtrim($rootUrl, '/') . '/eleads-yml/' . $label . '.xml';
+            $feedUrl = rtrim($rootUrl, '/') . '/eleads-yml/' . $label . '.xml';
+            if ($accessKey !== '') {
+                $feedUrl .= '?key=' . rawurlencode($accessKey);
+            }
+            $feedUrls[$language->id] = $feedUrl;
         }
         $updateInfo = ELeadsUpdateHelper::getUpdateInfo();
         $updateActionUrl = Request::getRootUrl() . '/backend/index.php?controller=ELeads.Eleads.ELeadsUpdateAdmin';
