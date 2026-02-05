@@ -29,12 +29,23 @@ class ProductsEntityExtender implements ExtensionInterface
             return;
         }
 
-        $syncService = $this->buildSyncService($serviceLocator);
-        if ($syncService === null) {
+        $settings = $this->getSettings($serviceLocator);
+        if ($settings === null) {
             return;
         }
 
-        $syncService->syncProductCreated($productId);
+        if (!$this->isSyncEnabled($settings)) {
+            return;
+        }
+
+        $apiKey = trim((string) $settings->get('eleads__api_key'));
+        if ($apiKey === '') {
+            return;
+        }
+
+        $pending = $this->getPendingCreates($settings);
+        $pending[$productId] = true;
+        $this->savePendingCreates($settings, $pending);
     }
 
     public function afterUpdate($result, $ids, $object): void
@@ -50,18 +61,36 @@ class ProductsEntityExtender implements ExtensionInterface
             return;
         }
 
+        $settings = $this->getSettings($serviceLocator);
+        if ($settings === null) {
+            return;
+        }
+
+        if (!$this->isSyncEnabled($settings)) {
+            return;
+        }
+
         $syncService = $this->buildSyncService($serviceLocator);
         if ($syncService === null) {
             return;
         }
 
+        $pending = $this->getPendingCreates($settings);
         foreach ($ids as $productId) {
             $productId = (int) $productId;
             if ($productId <= 0) {
                 continue;
             }
+            if (isset($pending[$productId])) {
+                $created = $syncService->syncProductCreated($productId);
+                if ($created) {
+                    unset($pending[$productId]);
+                }
+                continue;
+            }
             $syncService->syncProductUpdated($productId);
         }
+        $this->savePendingCreates($settings, $pending);
     }
 
     public function afterDelete($result, $ids): void
@@ -73,31 +102,40 @@ class ProductsEntityExtender implements ExtensionInterface
             return;
         }
 
+        $settings = $this->getSettings($serviceLocator);
+        if ($settings === null) {
+            return;
+        }
+
+        if (!$this->isSyncEnabled($settings)) {
+            return;
+        }
+
         $syncService = $this->buildSyncService($serviceLocator);
         if ($syncService === null) {
             return;
         }
 
+        $pending = $this->getPendingCreates($settings);
         foreach ($ids as $productId) {
             $productId = (int) $productId;
             if ($productId <= 0) {
                 continue;
             }
+            if (isset($pending[$productId])) {
+                unset($pending[$productId]);
+                continue;
+            }
             $syncService->syncProductDeleted($productId);
         }
+        $this->savePendingCreates($settings, $pending);
     }
 
     private function buildSyncService(ServiceLocator $serviceLocator): ?ELeadsSyncService
     {
         try {
-            $settings = $serviceLocator->getService(Settings::class);
-            $syncEnabled = $settings->get('eleads__sync_enabled');
-            if (empty($syncEnabled)) {
-                return null;
-            }
-
-            $apiKey = trim((string) $settings->get('eleads__api_key'));
-            if ($apiKey === '') {
+            $settings = $this->getSettings($serviceLocator);
+            if ($settings === null) {
                 return null;
             }
 
@@ -126,5 +164,37 @@ class ProductsEntityExtender implements ExtensionInterface
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    private function getSettings(ServiceLocator $serviceLocator): ?Settings
+    {
+        try {
+            return $serviceLocator->getService(Settings::class);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function isSyncEnabled(Settings $settings): bool
+    {
+        return !empty($settings->get('eleads__sync_enabled'));
+    }
+
+    private function getPendingCreates(Settings $settings): array
+    {
+        $pending = (array) $settings->get('eleads__sync_pending_create');
+        $result = [];
+        foreach ($pending as $value) {
+            $id = (int) $value;
+            if ($id > 0) {
+                $result[$id] = true;
+            }
+        }
+        return $result;
+    }
+
+    private function savePendingCreates(Settings $settings, array $pending): void
+    {
+        $settings->set('eleads__sync_pending_create', array_values(array_map('intval', array_keys($pending))));
     }
 }

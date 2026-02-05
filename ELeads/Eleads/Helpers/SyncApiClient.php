@@ -34,7 +34,11 @@ class SyncApiClient
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
         curl_setopt($ch, CURLOPT_TIMEOUT, 2);
 
-        curl_exec($ch);
+        $response = curl_exec($ch);
+        $curlError = $response === false ? curl_error($ch) : null;
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        // intentionally no logging
     }
 }

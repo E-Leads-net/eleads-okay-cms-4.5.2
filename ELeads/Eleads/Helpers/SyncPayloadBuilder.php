@@ -131,7 +131,7 @@ class SyncPayloadBuilder
             'position' => $category ? (int) ($category->position ?? 0) : 0,
             'parent_position' => 0,
             'full_path' => '',
-            'path' => [],
+            'path' => '',
         ];
 
         if ($category) {
@@ -150,8 +150,8 @@ class SyncPayloadBuilder
                 $current = $parentId && isset($categoriesById[$parentId]) ? $categoriesById[$parentId] : null;
             }
             $pathNames = array_reverse($pathNames);
-            $categoryPayload['path'] = $pathNames;
             $categoryPayload['full_path'] = implode(' / ', $pathNames);
+            $categoryPayload['path'] = $categoryPayload['full_path'];
         }
 
         $firstVariant = reset($variants);
@@ -170,6 +170,7 @@ class SyncPayloadBuilder
         if ($hasUnlimited) {
             $quantity = 1;
         }
+        $stockStatus = $available ? 'in_stock' : 'out_of_stock';
 
         $currencyCode = (string) ($this->settings->get('eleads__yml_feed__currency') ?: '');
         $price = $this->money->convert($firstVariant->price, $firstVariant->currency_id, false);
@@ -218,7 +219,7 @@ class SyncPayloadBuilder
                     'old_price' => $oldPrice,
                     'currency' => $currencyCode,
                     'quantity' => $quantity,
-                    'stock_status' => ELeadsFeedFormatter::formatStockStatus($available, $languageLabel),
+                    'stock_status' => $stockStatus,
                     'vendor' => $brandName,
                     'sku' => (string) ($firstVariant->sku ?? ''),
                     'label' => '',

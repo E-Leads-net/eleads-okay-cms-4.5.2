@@ -54,24 +54,24 @@ class ELeadsSyncService
         );
     }
 
-    public function syncProductCreated(int $productId): void
+    public function syncProductCreated(int $productId): bool
     {
         if (!$this->isSyncEnabled()) {
-            return;
+            return false;
         }
 
         $apiKey = trim((string) $this->settings->get('eleads__api_key'));
         if ($apiKey === '') {
-            return;
+            return false;
         }
 
         try {
             $payload = $this->payloadBuilder->buildPayload($productId);
         } catch (\Throwable $e) {
-            return;
+            return false;
         }
         if ($payload === null) {
-            return;
+            return false;
         }
 
         $this->apiClient->send(
@@ -80,6 +80,7 @@ class ELeadsSyncService
             $payload,
             $apiKey
         );
+        return true;
     }
 
     public function syncProductDeleted(int $productId): void
