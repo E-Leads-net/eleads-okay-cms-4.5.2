@@ -70,17 +70,38 @@ class ELeadsFeedFormatter
 
     public static function prepareParams(array $features, array $selectedFeatureSet, array $selectedFeatureValueSet): array
     {
-        $params = [];
+        $grouped = [];
         foreach ($features as $feature) {
             if (empty($feature['feature_name']) || $feature['value'] === null) {
                 continue;
             }
             $isFilter = isset($selectedFeatureSet[(int) $feature['feature_id']])
                 || isset($selectedFeatureValueSet[(int) $feature['value_id']]);
+            $name = (string) $feature['feature_name'];
+            if (!isset($grouped[$name])) {
+                $grouped[$name] = [
+                    'name' => $name,
+                    'values' => [],
+                    'filter' => false,
+                ];
+            }
+            $grouped[$name]['values'][] = (string) $feature['value'];
+            if ($isFilter) {
+                $grouped[$name]['filter'] = true;
+            }
+        }
+        $params = [];
+        foreach ($grouped as $item) {
+            $values = array_values(array_unique(array_filter($item['values'], static function ($value) {
+                return $value !== '';
+            })));
+            if (empty($values)) {
+                continue;
+            }
             $params[] = [
-                'name' => $feature['feature_name'],
-                'value' => $feature['value'],
-                'filter' => $isFilter,
+                'name' => $item['name'],
+                'value' => implode('; ', $values),
+                'filter' => $item['filter'],
             ];
         }
         return $params;
