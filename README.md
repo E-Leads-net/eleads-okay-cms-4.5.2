@@ -9,6 +9,7 @@ The module provides:
 - An API Key gate that locks settings until a valid key is provided.
 - Built‑in module update from GitHub.
 - Optional widget loader tag injection into the current storefront theme.
+- Optional SEO Pages integration (sitemap + dynamic pages).
 
 ## Compatibility
 - OkayCMS: 4.5.2
@@ -60,6 +61,14 @@ If an access key is configured:
 - Shows local version and latest version from GitHub.
 - Updates the module directly from the repository.
 
+### 4) SEO
+- **SEO Pages toggle**:
+  - When enabled, the module creates `/e-search/sitemap.xml`.
+  - When disabled, the sitemap file is removed.
+- **Sitemap URL** is shown with a copy button.
+- The SEO tab is shown only when the API token status returns `seo_status = true`.
+  - If `seo_status = false`, the tab is hidden and SEO Pages are forced OFF (sitemap removed).
+
 ## Feed Structure (Excerpt)
 ```
 <yml_catalog date="YYYY-MM-DD HH:MM">
@@ -107,6 +116,38 @@ On module disable:
 - The injected block is removed.
 
 If the tag request fails, nothing is inserted.
+
+## SEO Pages
+### Sitemap
+- URL: `/e-search/sitemap.xml`
+- Generated when **SEO Pages** is enabled.
+- Contains links of the form: `https://your-site.com/e-search/{slug}`
+
+### SEO Page route
+- URL: `/e-search/{slug}`
+- The module requests page data from the E‑Leads API and renders it using the standard product search results template (with filters).
+
+### Sitemap sync endpoint (module)
+The module exposes a protected endpoint to keep the sitemap in sync with external updates:
+
+```
+POST /e-search/sitemap-sync
+Authorization: Bearer <API_KEY>
+Content-Type: application/json
+```
+
+Payload:
+```
+{"action":"create","slug":"komp-belyy"}
+{"action":"delete","slug":"komp-belyy"}
+{"action":"update","slug":"old-slug","new_slug":"new-slug"}
+```
+
+Rules:
+- `action` is required: `create | update | delete`
+- `slug` is required for all actions
+- `new_slug` is required for `update`
+- `Authorization` must match the module API key
 
 ## Module Structure
 ```

@@ -8,6 +8,8 @@ class ELeadsApiRoutes
 {
     public const TOKEN_STATUS = 'https://dashboard.e-leads.net/api/ecommerce/token/status';
     public const ECOMMERCE_ITEMS = 'https://dashboard.e-leads.net/api/ecommerce/items';
+    public const SEO_SLUGS = 'https://dashboard.e-leads.net/api/seo/slugs';
+    public const SEO_PAGES = 'https://dashboard.e-leads.net/api/seo/pages';
     public const WIDGETS_LOADER_TAG = 'https://api.e-leads.net/v1/widgets-loader-tag';
     public const GITHUB_REPO = 'E-Leads-net/eleads-okay-cms-4.5.2';
     public const GITHUB_REPO_URL = 'https://github.com/' . self::GITHUB_REPO;
@@ -23,5 +25,10 @@ class ELeadsApiRoutes
     public static function ecommerceItemsUpdateUrl(string $externalId): string
     {
         return rtrim(self::ECOMMERCE_ITEMS, '/') . '/' . rawurlencode($externalId);
+    }
+
+    public static function seoPageUrl(string $slug): string
+    {
+        return rtrim(self::SEO_PAGES, '/') . '/' . rawurlencode($slug);
     }
 }

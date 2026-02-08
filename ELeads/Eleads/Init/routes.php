@@ -15,4 +15,21 @@ return [
             'method' => 'render',
         ],
     ],
+    'ELeads_Seo_Sitemap_Sync' => [
+        'slug' => 'e-search/sitemap-sync',
+        'params' => [
+            'controller' => __NAMESPACE__ . '\Controllers\SeoSitemapSyncController',
+            'method' => 'render',
+        ],
+    ],
+    'ELeads_Seo_Page' => [
+        'slug' => 'e-search/{$slug}',
+        'patterns' => [
+            '{$slug}' => '([0-9A-Za-z\\-_]+)',
+        ],
+        'params' => [
+            'controller' => __NAMESPACE__ . '\Controllers\SeoPagesController',
+            'method' => 'render',
+        ],
+    ],
 ];

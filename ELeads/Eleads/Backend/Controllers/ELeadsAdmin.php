@@ -13,6 +13,7 @@ use Okay\Entities\FeaturesValuesEntity;
 use Okay\Entities\LanguagesEntity;
 use Okay\Modules\ELeads\Eleads\Config\ELeadsApiRoutes;
 use Okay\Modules\ELeads\Eleads\Helpers\ELeadsUpdateHelper;
+use Okay\Modules\ELeads\Eleads\Helpers\SeoSitemapHelper;
 
 class ELeadsAdmin extends IndexAdmin
 {
@@ -23,8 +24,10 @@ class ELeadsAdmin extends IndexAdmin
         FeaturesValuesEntity $featuresValuesEntity,
         LanguagesEntity $languagesEntity
     ) {
+        $seoSitemapHelper = new SeoSitemapHelper($this->settings, Request::getRootUrl());
         $apiKey = trim((string) $this->settings->get('eleads__api_key'));
         $apiKeyValid = false;
+        $seoAllowed = false;
         $apiKeyError = null;
         $apiKeySubmitted = null;
         $isApiKeyForm = false;
@@ -32,10 +35,14 @@ class ELeadsAdmin extends IndexAdmin
         if ($this->request->method('POST') && $this->request->post('eleads__api_key_submit') !== null) {
             $isApiKeyForm = true;
             $apiKeySubmitted = trim((string) $this->request->post('eleads__api_key', 'string'));
-            if ($apiKeySubmitted !== '' && $this->checkApiKeyStatus($apiKeySubmitted)) {
+            if ($apiKeySubmitted !== '') {
+                $status = $this->checkApiKeyStatus($apiKeySubmitted);
+                $apiKeyValid = $status['ok'];
+                $seoAllowed = $status['seo_status'];
+            }
+            if ($apiKeySubmitted !== '' && $apiKeyValid) {
                 $this->settings->set('eleads__api_key', $apiKeySubmitted);
                 $apiKey = $apiKeySubmitted;
-                $apiKeyValid = true;
                 $this->design->assign('message_success', 'saved');
             } else {
                 $apiKeyError = 'invalid';
@@ -44,7 +51,9 @@ class ELeadsAdmin extends IndexAdmin
 
         if (!$isApiKeyForm) {
             if ($apiKey !== '') {
-                $apiKeyValid = $this->checkApiKeyStatus($apiKey);
+                $status = $this->checkApiKeyStatus($apiKey);
+                $apiKeyValid = $status['ok'];
+                $seoAllowed = $status['seo_status'];
                 if (!$apiKeyValid) {
                     $apiKeyError = 'invalid';
                 }
@@ -52,11 +61,13 @@ class ELeadsAdmin extends IndexAdmin
         }
 
         if ($this->request->method('POST') && !$isApiKeyForm && $apiKeyValid) {
+            $seoPagesEnabled = $seoAllowed && $this->request->post('eleads__seo_pages_enabled') ? 1 : 0;
             $this->settings->set('eleads__yml_feed__categories', (array) $this->request->post('eleads__yml_feed__categories'));
             $this->settings->set('eleads__yml_feed__filter_features', (array) $this->request->post('eleads__yml_feed__filter_features'));
             $this->settings->set('eleads__yml_feed__filter_options', (array) $this->request->post('eleads__yml_feed__filter_options'));
             $this->settings->set('eleads__yml_feed__grouped', $this->request->post('eleads__yml_feed__grouped') ? 1 : 0);
             $this->settings->set('eleads__sync_enabled', $this->request->post('eleads__sync_enabled') ? 1 : 0);
+            $this->settings->set('eleads__seo_pages_enabled', $seoPagesEnabled);
             $this->settings->set('eleads__yml_feed__access_key', $this->request->post('eleads__yml_feed__access_key', 'string'));
             $this->settings->set('eleads__yml_feed__shop_name', $this->request->post('eleads__yml_feed__shop_name'));
             $this->settings->set('eleads__yml_feed__email', $this->request->post('eleads__yml_feed__email'));
@@ -66,7 +77,20 @@ class ELeadsAdmin extends IndexAdmin
             $this->settings->set('eleads__yml_feed__image_size', $this->request->post('eleads__yml_feed__image_size', 'string'));
             $this->settings->set('eleads__yml_feed__short_description_source', $this->request->post('eleads__yml_feed__short_description_source'));
 
+            if ($seoPagesEnabled) {
+                $seoSitemapHelper->createSitemap();
+            } else {
+                $seoSitemapHelper->removeSitemap();
+            }
+
             $this->design->assign('message_success', 'saved');
+        }
+
+        if (!$seoAllowed) {
+            if ((int) $this->settings->get('eleads__seo_pages_enabled') === 1) {
+                $this->settings->set('eleads__seo_pages_enabled', 0);
+                $seoSitemapHelper->removeSitemap();
+            }
         }
         if ($this->request->get('update_result')) {
             $this->design->assign('update_result', $this->request->get('update_result'));
@@ -106,6 +130,7 @@ class ELeadsAdmin extends IndexAdmin
             }
             $feedUrls[$language->id] = $feedUrl;
         }
+        $sitemapUrl = rtrim($rootUrl, '/') . '/e-search/sitemap.xml';
         $updateInfo = ELeadsUpdateHelper::getUpdateInfo();
         $updateActionUrl = Request::getRootUrl() . '/backend/index.php?controller=ELeads.Eleads.ELeadsUpdateAdmin';
 
@@ -127,6 +152,12 @@ class ELeadsAdmin extends IndexAdmin
             $syncEnabled = 0;
         }
         $this->design->assign('sync_enabled', (int) $syncEnabled);
+        $seoPagesEnabled = $this->settings->get('eleads__seo_pages_enabled');
+        if ($seoPagesEnabled === null || $seoPagesEnabled === '') {
+            $seoPagesEnabled = 0;
+        }
+        $this->design->assign('seo_pages_enabled', (int) $seoPagesEnabled);
+        $this->design->assign('seo_pages_allowed', $seoAllowed);
         $this->design->assign('default_shop_name', $defaultShopName);
         $this->design->assign('default_email', $defaultEmail);
         $this->design->assign('default_currency', $defaultCurrency);
@@ -138,19 +169,20 @@ class ELeadsAdmin extends IndexAdmin
         $this->design->assign('api_key_error', $apiKeyError);
         $this->design->assign('update_info', $updateInfo);
         $this->design->assign('update_action_url', $updateActionUrl);
+        $this->design->assign('seo_sitemap_url', $sitemapUrl);
 
         $this->response->setContent($this->design->fetch('e_leads.tpl'));
     }
 
-    private function checkApiKeyStatus(string $apiKey): bool
+    private function checkApiKeyStatus(string $apiKey): array
     {
         if ($apiKey === '') {
-            return false;
+            return ['ok' => false, 'seo_status' => false];
         }
 
         $ch = curl_init();
         if ($ch === false) {
-            return false;
+            return ['ok' => false, 'seo_status' => false];
         }
 
         $headers = [
@@ -168,17 +200,24 @@ class ELeadsAdmin extends IndexAdmin
         $response = curl_exec($ch);
         if ($response === false) {
             curl_close($ch);
-            return false;
+            return ['ok' => false, 'seo_status' => false];
         }
 
         $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if ($httpCode < 200 || $httpCode >= 300) {
-            return false;
+            return ['ok' => false, 'seo_status' => false];
         }
 
         $data = json_decode($response, true);
-        return is_array($data) && !empty($data['ok']);
+        if (!is_array($data)) {
+            return ['ok' => false, 'seo_status' => false];
+        }
+
+        return [
+            'ok' => !empty($data['ok']),
+            'seo_status' => !empty($data['seo_status']),
+        ];
     }
 }

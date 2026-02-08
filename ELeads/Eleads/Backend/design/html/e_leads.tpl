@@ -67,6 +67,9 @@
                 <div class="heading_tabs">
                     <div class="tab_navigation">
                         <a href="#tab_export" class="heading_box tab_navigation_link">{$btr->okaycms__eleads_yml_feed__tab_export|escape}</a>
+                        {if $seo_pages_allowed}
+                            <a href="#tab_seo" class="heading_box tab_navigation_link">{$btr->okaycms__eleads_yml_feed__tab_seo|escape}</a>
+                        {/if}
                         <a href="#tab_api_key" class="heading_box tab_navigation_link">{$btr->okaycms__eleads_yml_feed__tab_api_key|escape}</a>
                         <a href="#tab_update" class="heading_box tab_navigation_link">{$btr->okaycms__eleads_yml_feed__tab_update|escape}</a>
                     </div>
@@ -79,6 +82,11 @@
                         <div id="tab_export" class="tab">
                             {include file='partials/eleads_export.tpl'}
                         </div>
+                        {if $seo_pages_allowed}
+                            <div id="tab_seo" class="tab">
+                                {include file='partials/eleads_seo.tpl'}
+                            </div>
+                        {/if}
                         <div id="tab_api_key" class="tab">
                             {include file='partials/eleads_api_key.tpl'}
                         </div>
