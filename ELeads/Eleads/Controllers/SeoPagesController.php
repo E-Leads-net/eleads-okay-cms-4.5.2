@@ -56,32 +56,59 @@ class SeoPagesController extends AbstractController
             $productsFilter['keyword'] = $keyword;
         }
 
+        $isFilterPage = false;
         $catalogFeatures = [];
-        if (method_exists($productsHelper, 'getCatalogFeatures')) {
+
+        // New core branch (4.5.x+): uses ProductsHelper/CatalogHelper filter pipeline.
+        if (method_exists($productsHelper, 'getCatalogFeatures')
+            && method_exists($productsHelper, 'assignFilterProcedure')
+        ) {
             $catalogFeatures = (array) $productsHelper->getCatalogFeatures();
-        } elseif (method_exists($catalogHelper, 'getCatalogFeatures')) {
-            $catalogFeatures = (array) $catalogHelper->getCatalogFeatures();
-        }
 
-        if (!empty($catalogFeatures) && method_exists($filterHelper, 'setFeatures')) {
-            $filterHelper->setFeatures($catalogFeatures);
-        }
-
-        if (!empty($catalogFeatures) && method_exists($productsHelper, 'assignFilterProcedure')) {
-            $productsHelper->assignFilterProcedure($productsFilter, $catalogFeatures, $keyword);
-        } elseif (!empty($catalogFeatures) && method_exists($catalogHelper, 'assignCatalogDataProcedure')) {
-            $catalogCategories = [];
-            if (isset($productsFilter['keyword']) && method_exists($categoriesEntity, 'find')) {
-                $catalogCategories = (array) $categoriesEntity->find(['product_keyword' => $productsFilter['keyword']]);
+            if (!empty($catalogFeatures) && method_exists($filterHelper, 'setFeatures')) {
+                $filterHelper->setFeatures($catalogFeatures);
             }
 
-            $catalogHelper->assignCatalogDataProcedure(
-                $productsFilter,
-                $catalogFeatures,
-                $catalogCategories,
-                null,
-                (int) $this->settings->get('features_max_count_products')
-            );
+            $productsHelper->assignFilterProcedure($productsFilter, $catalogFeatures, $keyword);
+
+            if (method_exists($productsHelper, 'isFilterPage')) {
+                $isFilterPage = (bool) $productsHelper->isFilterPage($productsFilter);
+            } elseif (method_exists($filterHelper, 'isFilterPage')) {
+                $isFilterPage = (bool) $filterHelper->isFilterPage($productsFilter);
+            }
+        } else {
+            // Old core branch (4.0.x): fallback to legacy search filter flow.
+            if (method_exists($filterHelper, 'setFiltersUrl')) {
+                $filterHelper->setFiltersUrl('');
+            }
+
+            if (method_exists($catalogHelper, 'getPriceFilter')) {
+                $productsFilter['price'] = $catalogHelper->getPriceFilter('search');
+            }
+
+            if (method_exists($catalogHelper, 'getOtherFilters')) {
+                $this->design->assign('other_filters', $catalogHelper->getOtherFilters($productsFilter));
+            }
+
+            if (method_exists($catalogHelper, 'getPrices')) {
+                $prices = $catalogHelper->getPrices($productsFilter, 'search');
+                $this->design->assign('prices', $prices);
+            }
+
+            if (method_exists($filterHelper, 'getSearchProductsFilter')) {
+                $legacyFilter = $filterHelper->getSearchProductsFilter($productsFilter, $keyword);
+                if ($legacyFilter === false) {
+                    return false;
+                }
+                $productsFilter = $legacyFilter;
+            }
+
+            $hasPriceFilter = !empty($productsFilter['price'])
+                && isset($productsFilter['price']['min'], $productsFilter['price']['max'])
+                && $productsFilter['price']['min'] !== ''
+                && $productsFilter['price']['max'] !== ''
+                && $productsFilter['price']['min'] !== null;
+            $isFilterPage = $hasPriceFilter || !empty($productsFilter['other_filter']);
         }
 
         $sort = (string) $request->get('sort', 'string');
@@ -107,12 +134,6 @@ class SeoPagesController extends AbstractController
         $this->design->assign('description', $page['description'] ?? '');
         $this->design->assign('products', $products);
         $this->design->assign('sort', $sort);
-        $isFilterPage = false;
-        if (method_exists($productsHelper, 'isFilterPage')) {
-            $isFilterPage = (bool) $productsHelper->isFilterPage($productsFilter);
-        } elseif (method_exists($filterHelper, 'isFilterPage')) {
-            $isFilterPage = (bool) $filterHelper->isFilterPage($productsFilter);
-        }
         $this->design->assign('is_filter_page', $isFilterPage);
         $this->design->assign('total_pages_num', 1);
         $this->design->assign('current_page_num', 1);
