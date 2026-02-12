@@ -135,6 +135,14 @@ class SeoPagesController extends AbstractController
         $this->design->assign('h1', $page['h1'] ?? $page['query'] ?? '');
         $this->design->assign('annotation', $page['short_description'] ?? '');
         $this->design->assign('description', $page['description'] ?? '');
+        if (!method_exists($productsHelper, 'getCatalogFeatures')) {
+            $legacyCategory = $this->design->getVar('category');
+            if (!is_object($legacyCategory)) {
+                $legacyCategory = new \stdClass();
+            }
+            $legacyCategory->annotation = (string) ($page['short_description'] ?? '');
+            $this->design->assign('category', $legacyCategory);
+        }
         $this->design->assign('products', $products);
         $this->design->assign('sort', $sort);
         $this->design->assign('is_filter_page', $isFilterPage);
