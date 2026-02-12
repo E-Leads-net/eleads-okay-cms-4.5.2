@@ -140,6 +140,9 @@ class SeoPagesController extends AbstractController
             if (!is_object($legacyCategory)) {
                 $legacyCategory = new \stdClass();
             }
+            if (!isset($legacyCategory->id)) {
+                $legacyCategory->id = 0;
+            }
             $legacyCategory->annotation = (string) ($page['short_description'] ?? '');
             $this->design->assign('category', $legacyCategory);
         }
