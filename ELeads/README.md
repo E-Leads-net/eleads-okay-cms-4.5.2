@@ -9,6 +9,7 @@ The module provides:
 - An API Key gate that locks settings until a valid key is provided.
 - Built‑in module update from GitHub.
 - Optional widget loader tag injection into the current storefront theme.
+- Optional SEO Pages integration (sitemap + dynamic pages).
 
 ## Compatibility
 - OkayCMS: 4.5.2
@@ -60,6 +61,14 @@ If an access key is configured:
 - Shows local version and latest version from GitHub.
 - Updates the module directly from the repository.
 
+### 4) SEO
+- **SEO Pages toggle**:
+  - When enabled, the module creates `/e-search/sitemap.xml`.
+  - When disabled, the sitemap file is removed.
+- **Sitemap URL** is shown with a copy button.
+- The SEO tab is shown only when the API token status returns `seo_status = true`.
+  - If `seo_status = false`, the tab is hidden and SEO Pages are forced OFF (sitemap removed).
+
 ## Feed Structure (Excerpt)
 ```
 <yml_catalog date="YYYY-MM-DD HH:MM">
@@ -108,6 +117,115 @@ On module disable:
 
 If the tag request fails, nothing is inserted.
 
+## SEO Pages
+### Module API routes (with `/api`)
+- `POST /e-search/api/sitemap-sync`
+- `GET /e-search/api/languages`
+
+These are module API endpoints and always include `/api`.
+Public SEO page routes are different:
+- `/e-search/sitemap.xml`
+- `/e-search/{slug}`
+
+### Sitemap
+- URL: `/e-search/sitemap.xml`
+- Generated when **SEO Pages** is enabled.
+- Contains language-aware links:
+  - main language: `https://your-site.com/e-search/{slug}`
+  - non-main language: `https://your-site.com/{lang}/e-search/{slug}`
+- Slug language from API is mapped to store language labels.
+  - Example: API `uk` is mapped to store `ua` when the shop uses `ua`.
+
+### SEO Page route
+- URL: `/e-search/{slug}`
+- The module requests page data from the E‑Leads API using:
+  - path param `{slug}`
+  - query param `lang` (current store language, `ua` mapped to `uk` for API)
+- The page is rendered using the standard product search results template (with filters).
+- Canonical is taken from API field `page.url` (fallback: local route URL).
+- Alternate links are rendered only for languages returned by API `page.alternate`, plus current page language URL.
+
+### Sitemap sync endpoint (module)
+The module exposes a protected endpoint to keep the sitemap in sync with external updates:
+
+```
+POST /e-search/api/sitemap-sync
+Authorization: Bearer <API_KEY>
+Content-Type: application/json
+```
+
+Optional query parameter:
+```
+?lang=<language_label>
+```
+
+Payload:
+```
+{"action":"create","slug":"komp-belyy"}
+{"action":"delete","slug":"komp-belyy"}
+{"action":"update","slug":"old-slug","new_slug":"new-slug"}
+```
+
+Payload with language:
+```
+{"action":"create","slug":"komp-belyy","lang":"uk"}
+{"action":"delete","slug":"komp-belyy","language":"ru"}
+{"action":"update","slug":"old-slug","new_slug":"new-slug","lang":"uk","new_lang":"ru"}
+```
+
+Rules:
+- `action` is required: `create | update | delete`
+- `slug` is required for all actions
+- `new_slug` is required for `update`
+- language can be passed as `lang` or `language`
+- for `update`, target language can be passed as `new_lang` or `new_language`
+- if `?lang=` is present, it has priority over payload language
+- `Authorization` must match the module API key
+
+Success response:
+```json
+{
+  "status": "ok",
+  "url": "https://example.com/lang/e-search/telefon"
+}
+```
+
+Error responses:
+- `401` → `{"error":"unauthorized"}` or `{"error":"api_key_missing"}`
+- `405` → `{"error":"method_not_allowed"}`
+- `422` → `{"error":"invalid_payload"}` or `{"error":"invalid_action"}`
+- `500` → `{"error":"sitemap_update_failed"}`
+
+### Languages endpoint (module)
+Returns enabled/available store languages for external integrations.
+
+```
+GET /e-search/api/languages
+Authorization: Bearer <API_KEY>
+Accept: application/json
+```
+
+Success response:
+```json
+{
+  "status": "ok",
+  "count": 3,
+  "items": [
+    {
+      "id": 1,
+      "label": "ua",
+      "code": "ua",
+      "href_lang": "uk",
+      "enabled": true
+    }
+  ]
+}
+```
+
+Error responses:
+- `401` → `{"error":"unauthorized"}` or `{"error":"api_key_missing"}`
+- `405` → `{"error":"method_not_allowed"}`
+
 ## Module Structure
 ```
 ELeads/Eleads/
@@ -126,6 +244,8 @@ Key files:
 - Feed template: `design/html/eleads.xml.tpl`
 - Admin UI: `Backend/Controllers/ELeadsAdmin.php`
 - Admin templates: `Backend/design/html/partials/*`
+- SEO endpoints: `Controllers/SeoSitemapSyncController.php`, `Controllers/SeoLanguagesController.php`
+- SEO page render: `Controllers/SeoPagesController.php`, `Helpers/SeoPagesApiHelper.php`, `Helpers/SeoSitemapHelper.php`
 - Sync helpers: `Helpers/Sync*`
 
 ## Notes for Marketplace Review

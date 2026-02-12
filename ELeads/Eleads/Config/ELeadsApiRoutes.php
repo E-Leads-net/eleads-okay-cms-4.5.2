@@ -27,8 +27,12 @@ class ELeadsApiRoutes
         return rtrim(self::ECOMMERCE_ITEMS, '/') . '/' . rawurlencode($externalId);
     }
 
-    public static function seoPageUrl(string $slug): string
+    public static function seoPageUrl(string $slug, ?string $lang = null): string
     {
-        return rtrim(self::SEO_PAGES, '/') . '/' . rawurlencode($slug);
+        $url = rtrim(self::SEO_PAGES, '/') . '/' . rawurlencode($slug);
+        if ($lang !== null && trim($lang) !== '') {
+            $url .= '?lang=' . rawurlencode(trim($lang));
+        }
+        return $url;
     }
 }

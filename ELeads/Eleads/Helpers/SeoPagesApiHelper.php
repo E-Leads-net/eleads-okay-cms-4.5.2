@@ -19,12 +19,19 @@ class SeoPagesApiHelper
     /**
      * @return array<string, mixed>|null
      */
-    public function fetchPage(string $slug): ?array
+    public function fetchPage(string $slug, string $language): ?array
     {
         $slug = trim($slug);
         if ($slug === '') {
             return null;
         }
+
+        $language = trim($language);
+        if ($language === '') {
+            return null;
+        }
+
+        $language = $language === 'ua' ? 'uk' : $language;
 
         $apiKey = trim((string) $this->settings->get('eleads__api_key'));
         if ($apiKey === '') {
@@ -41,7 +48,7 @@ class SeoPagesApiHelper
             'Accept: application/json',
         ];
 
-        curl_setopt($ch, CURLOPT_URL, ELeadsApiRoutes::seoPageUrl($slug));
+        curl_setopt($ch, CURLOPT_URL, ELeadsApiRoutes::seoPageUrl($slug, $language));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);

@@ -5,6 +5,7 @@ namespace Okay\Modules\ELeads\Eleads\Controllers;
 
 
 use Okay\Controllers\AbstractController;
+use Okay\Core\Languages;
 use Okay\Core\Request;
 use Okay\Core\Router;
 use Okay\Entities\CategoriesEntity;
@@ -18,6 +19,7 @@ class SeoPagesController extends AbstractController
 {
     public function render(
         Request $request,
+        Languages $languages,
         ProductsHelper $productsHelper,
         FilterHelper $filterHelper,
         CatalogHelper $catalogHelper,
@@ -31,13 +33,14 @@ class SeoPagesController extends AbstractController
         }
 
         $slug = (string) $slug;
-        $sitemapHelper = new SeoSitemapHelper($this->settings, Request::getRootUrl());
-        if (!$sitemapHelper->hasSlug($slug)) {
+        $langLabel = (string) $languages->getLangLabel();
+        $sitemapHelper = new SeoSitemapHelper($this->settings, Request::getRootUrl(), $languages);
+        if (!$sitemapHelper->hasSlug($slug, $langLabel)) {
             return false;
         }
 
         $apiHelper = new SeoPagesApiHelper($this->settings);
-        $page = $apiHelper->fetchPage($slug);
+        $page = $apiHelper->fetchPage($slug, $langLabel);
         if ($page === null) {
             return false;
         }
@@ -143,8 +146,125 @@ class SeoPagesController extends AbstractController
         $this->design->assign('meta_title', $metaTitle);
         $this->design->assign('meta_description', $metaDescription);
         $this->design->assign('meta_keywords', $metaKeywords);
-        $this->design->assign('canonical', Router::generateUrl('ELeads_Seo_Page', ['slug' => $slug], true));
+        $canonicalUrl = trim((string) ($page['url'] ?? ''));
+        if ($canonicalUrl === '') {
+            $canonicalUrl = Router::generateUrl('ELeads_Seo_Page', ['slug' => $slug], true);
+        }
+
+        $this->applyAlternateLinks($page['alternate'] ?? [], $langLabel, $canonicalUrl);
+        $this->design->assign('canonical', $canonicalUrl);
 
         $this->response->setContent('products.tpl');
+    }
+
+    /**
+     * @param array<int, mixed> $alternates
+     */
+    private function applyAlternateLinks(array $alternates, string $currentLangLabel, string $currentUrl): void
+    {
+        $languages = $this->design->getVar('languages');
+        if (!is_array($languages) || empty($languages)) {
+            return;
+        }
+
+        $currentLangLabel = strtolower(trim($currentLangLabel));
+        $currentHreflang = $currentLangLabel === 'ua' ? 'uk' : $currentLangLabel;
+
+        $alternateMap = [];
+        foreach ($alternates as $alternate) {
+            if (!is_array($alternate)) {
+                continue;
+            }
+
+            $url = trim((string) ($alternate['url'] ?? ''));
+            $apiLang = strtolower(trim((string) ($alternate['lang'] ?? '')));
+            if ($url === '' || $apiLang === '') {
+                continue;
+            }
+
+            $storeLangLabel = $this->resolveStoreLanguageLabel($apiLang, $languages);
+            if ($storeLangLabel === '') {
+                continue;
+            }
+
+            $alternateMap[$storeLangLabel] = [
+                'url' => $url,
+                'hreflang' => $apiLang,
+            ];
+        }
+
+        $filteredLanguages = [];
+        $currentLanguageObject = null;
+        foreach ($languages as $key => $language) {
+            if (!is_object($language)) {
+                continue;
+            }
+
+            $label = strtolower((string) ($language->label ?? ''));
+            if ($label === $currentLangLabel) {
+                $currentLanguageObject = $language;
+            }
+
+            if ($label === '' || !isset($alternateMap[$label])) {
+                continue;
+            }
+
+            $languages[$key]->enabled = true;
+            $languages[$key]->url = $alternateMap[$label]['url'];
+            $languages[$key]->href_lang = $alternateMap[$label]['hreflang'];
+            $filteredLanguages[$key] = $languages[$key];
+        }
+
+        if ($currentLangLabel !== '' && $currentUrl !== '') {
+            if (is_object($currentLanguageObject)) {
+                $currentLanguageObject->enabled = true;
+                $currentLanguageObject->url = $currentUrl;
+                $currentLanguageObject->href_lang = $currentHreflang;
+                $filteredLanguages[$currentLangLabel] = $currentLanguageObject;
+            } else {
+                $currentItem = new \stdClass();
+                $currentItem->enabled = true;
+                $currentItem->url = $currentUrl;
+                $currentItem->href_lang = $currentHreflang;
+                $filteredLanguages[$currentLangLabel] = $currentItem;
+            }
+        }
+
+        $this->design->assign('languages', $filteredLanguages);
+    }
+
+    /**
+     * @param array<int, mixed> $languages
+     */
+    private function resolveStoreLanguageLabel(string $apiLang, array $languages): string
+    {
+        $apiLang = strtolower(trim($apiLang));
+        if ($apiLang === '') {
+            return '';
+        }
+
+        $labels = [];
+        foreach ($languages as $language) {
+            if (!is_object($language)) {
+                continue;
+            }
+
+            $label = strtolower((string) ($language->label ?? ''));
+            if ($label !== '') {
+                $labels[$label] = true;
+            }
+        }
+
+        if (isset($labels[$apiLang])) {
+            return $apiLang;
+        }
+        if ($apiLang === 'uk' && isset($labels['ua'])) {
+            return 'ua';
+        }
+        if ($apiLang === 'ua' && isset($labels['uk'])) {
+            return 'uk';
+        }
+
+        return '';
     }
 }

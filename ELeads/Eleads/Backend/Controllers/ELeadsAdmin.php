@@ -5,6 +5,7 @@ namespace Okay\Modules\ELeads\Eleads\Backend\Controllers;
 
 
 use Okay\Admin\Controllers\IndexAdmin;
+use Okay\Core\Languages;
 use Okay\Core\Request;
 use Okay\Entities\CategoriesEntity;
 use Okay\Entities\CurrenciesEntity;
@@ -22,9 +23,10 @@ class ELeadsAdmin extends IndexAdmin
         CurrenciesEntity $currenciesEntity,
         FeaturesEntity $featuresEntity,
         FeaturesValuesEntity $featuresValuesEntity,
-        LanguagesEntity $languagesEntity
+        LanguagesEntity $languagesEntity,
+        Languages $languages
     ) {
-        $seoSitemapHelper = new SeoSitemapHelper($this->settings, Request::getRootUrl());
+        $seoSitemapHelper = new SeoSitemapHelper($this->settings, Request::getRootUrl(), $languages);
         $apiKey = trim((string) $this->settings->get('eleads__api_key'));
         $apiKeyValid = false;
         $seoAllowed = false;

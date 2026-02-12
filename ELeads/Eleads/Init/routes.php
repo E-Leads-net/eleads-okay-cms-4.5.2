@@ -16,9 +16,16 @@ return [
         ],
     ],
     'ELeads_Seo_Sitemap_Sync' => [
-        'slug' => 'e-search/sitemap-sync',
+        'slug' => 'e-search/api/sitemap-sync',
         'params' => [
             'controller' => __NAMESPACE__ . '\Controllers\SeoSitemapSyncController',
+            'method' => 'render',
+        ],
+    ],
+    'ELeads_Seo_Languages' => [
+        'slug' => 'e-search/api/languages',
+        'params' => [
+            'controller' => __NAMESPACE__ . '\Controllers\SeoLanguagesController',
             'method' => 'render',
         ],
     ],

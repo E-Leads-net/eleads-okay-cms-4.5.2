@@ -3,12 +3,13 @@
 namespace Okay\Modules\ELeads\Eleads\Controllers;
 
 use Okay\Controllers\AbstractController;
+use Okay\Core\Languages;
 use Okay\Core\Request;
 use Okay\Modules\ELeads\Eleads\Helpers\SeoSitemapHelper;
 
 class SeoSitemapSyncController extends AbstractController
 {
-    public function render(Request $request)
+    public function render(Request $request, Languages $languages)
     {
         if (!$request->method('POST')) {
             $this->respond(['error' => 'method_not_allowed'], 405);
@@ -37,25 +38,35 @@ class SeoSitemapSyncController extends AbstractController
         $action = strtolower((string) ($payload['action'] ?? ''));
         $slug = trim((string) ($payload['slug'] ?? ''));
         $newSlug = trim((string) ($payload['new_slug'] ?? ''));
+        $langFromQuery = trim((string) $request->get('lang', 'string'));
+        $lang = trim((string) ($payload['lang'] ?? $payload['language'] ?? $langFromQuery));
+        if ($langFromQuery !== '') {
+            $lang = $langFromQuery;
+        }
+        $newLang = trim((string) ($payload['new_lang'] ?? $payload['new_language'] ?? $lang));
 
         if ($action === '' || $slug === '') {
             $this->respond(['error' => 'invalid_payload'], 422);
             return;
         }
 
-        $sitemapHelper = new SeoSitemapHelper($this->settings, Request::getRootUrl());
+        $sitemapHelper = new SeoSitemapHelper($this->settings, Request::getRootUrl(), $languages);
         $result = false;
+        $responseSlug = $slug;
+        $responseLang = $lang;
 
         if ($action === 'create') {
-            $result = $sitemapHelper->addSlug($slug);
+            $result = $sitemapHelper->addSlug($slug, $lang);
         } elseif ($action === 'delete') {
-            $result = $sitemapHelper->removeSlug($slug);
+            $result = $sitemapHelper->removeSlug($slug, $lang);
         } elseif ($action === 'update') {
             if ($newSlug === '') {
                 $this->respond(['error' => 'invalid_payload'], 422);
                 return;
             }
-            $result = $sitemapHelper->updateSlug($slug, $newSlug);
+            $result = $sitemapHelper->updateSlug($slug, $newSlug, $lang, $newLang);
+            $responseSlug = $newSlug;
+            $responseLang = $newLang;
         } else {
             $this->respond(['error' => 'invalid_action'], 422);
             return;
@@ -66,7 +77,10 @@ class SeoSitemapSyncController extends AbstractController
             return;
         }
 
-        $this->respond(['status' => 'ok']);
+        $this->respond([
+            'status' => 'ok',
+            'url' => $sitemapHelper->getSlugUrl($responseSlug, $responseLang),
+        ]);
     }
 
     private function getRequestPayload(Request $request): array
