@@ -112,6 +112,12 @@ class SeoPagesController extends AbstractController
                 && $productsFilter['price']['max'] !== ''
                 && $productsFilter['price']['min'] !== null;
             $isFilterPage = $hasPriceFilter || !empty($productsFilter['other_filter']);
+
+            // Old default products.tpl hides annotation on filter pages.
+            // For SEO pages we need to show API short description consistently.
+            if (!empty($page['short_description'])) {
+                $isFilterPage = false;
+            }
         }
 
         $sort = (string) $request->get('sort', 'string');
