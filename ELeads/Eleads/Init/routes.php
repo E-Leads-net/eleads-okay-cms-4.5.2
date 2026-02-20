@@ -29,6 +29,13 @@ return [
             'method' => 'render',
         ],
     ],
+    'ELeads_Seo_Feeds' => [
+        'slug' => 'eleads-yml/api/feeds',
+        'params' => [
+            'controller' => __NAMESPACE__ . '\Controllers\SeoFeedsController',
+            'method' => 'render',
+        ],
+    ],
     'ELeads_Seo_Page' => [
         'slug' => 'e-search/{$slug}',
         'patterns' => [

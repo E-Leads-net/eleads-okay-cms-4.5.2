@@ -121,6 +121,7 @@ If the tag request fails, nothing is inserted.
 ### Module API routes (with `/api`)
 - `POST /e-search/api/sitemap-sync`
 - `GET /e-search/api/languages`
+- `GET /eleads-yml/api/feeds`
 
 These are module API endpoints and always include `/api`.
 Public SEO page routes are different:
@@ -225,6 +226,56 @@ Success response:
 Error responses:
 - `401` → `{"error":"unauthorized"}` or `{"error":"api_key_missing"}`
 - `405` → `{"error":"method_not_allowed"}`
+
+### Feeds endpoint (module)
+Returns all feed URLs as `store language label -> feed URL`.
+This endpoint is protected by the same module API key as other module API routes.
+
+```
+GET /eleads-yml/api/feeds
+Authorization: Bearer <API_KEY>
+Accept: application/json
+```
+
+Authentication:
+- `Authorization` header is mandatory and must be in Bearer format.
+- Token must be equal to `eleads__api_key` value from module settings.
+- If module API key is empty, request is rejected.
+
+Language mapping logic:
+- Keys in response are **store language labels** (`ru`, `ua`, `en`, ...).
+- Feed URL language code is built by feed rules:
+  - regular labels are used as-is (`ru` -> `ru.xml`, `en` -> `en.xml`);
+  - `ua` is mapped to `uk` in URL (`ua` -> `uk.xml`), same as module feed generation logic.
+
+Feed access key behavior:
+- If `eleads__yml_feed__access_key` is configured, each URL includes `?key=<access_key>`.
+- If not configured, URLs are returned without query string.
+
+Response format:
+```json
+{
+  "status": "ok",
+  "count": 3,
+  "items": {
+    "ru": "https://example.com/eleads-yml/ru.xml?key=abc",
+    "ua": "https://example.com/eleads-yml/uk.xml?key=abc",
+    "en": "https://example.com/eleads-yml/en.xml?key=abc"
+  }
+}
+```
+
+Field details:
+- `status` — always `ok` on success.
+- `count` — number of language entries in `items`.
+- `items` — object map:
+  - key: store language label;
+  - value: full absolute feed URL for this language.
+
+HTTP status codes / errors:
+- `200` → success response.
+- `401` → `{"error":"unauthorized"}` or `{"error":"api_key_missing"}`.
+- `405` → `{"error":"method_not_allowed"}` (any method except GET).
 
 ## Module Structure
 ```
