@@ -61,6 +61,7 @@ class SeoPagesController extends AbstractController
 
         $isFilterPage = false;
         $catalogFeatures = [];
+        $listRouteName = 'products';
 
         // New core branch (4.5.x+): uses ProductsHelper/CatalogHelper filter pipeline.
         if (method_exists($productsHelper, 'getCatalogFeatures')
@@ -81,6 +82,8 @@ class SeoPagesController extends AbstractController
             }
         } else {
             // Old core branch (4.0.x): fallback to legacy search filter flow.
+            $listRouteName = 'search';
+
             if (method_exists($filterHelper, 'setFiltersUrl')) {
                 $filterHelper->setFiltersUrl('');
             }
@@ -157,8 +160,8 @@ class SeoPagesController extends AbstractController
         $this->design->assign('is_filter_page', $isFilterPage);
         $this->design->assign('total_pages_num', 1);
         $this->design->assign('current_page_num', 1);
-        $this->design->assign('route_name', 'products');
-        $this->design->assign('furlRoute', 'products');
+        $this->design->assign('route_name', $listRouteName);
+        $this->design->assign('furlRoute', $listRouteName);
         $this->design->assign('keyword', $keyword);
         $this->design->assign('meta_title', $metaTitle);
         $this->design->assign('meta_description', $metaDescription);
