@@ -4,22 +4,41 @@
             <strong>{$btr->okaycms__eleads_yml_feed__feed_urls|escape}</strong>
         </div>
 {foreach $languages as $language}
-            <div class="row mb-1 eleads_feed_url_row">
+            {$feed_lang = $language->label}
+            {if $feed_lang == 'ua'}{$feed_lang = 'uk'}{/if}
+            <div class="row mb-1 eleads_feed_url_row" data-eleads-feed-row data-lang="{$feed_lang|escape}">
                 <div class="col-lg-2 col-md-3 eleads_feed_url_label">
                     <label class="heading_label">
                         {$language->name|escape} ({$language->label|escape})
                     </label>
                 </div>
                 <div class="col-lg-10 col-md-9 eleads_feed_url_input">
-                    <div class="input-group eleads_feed_actions{if $sync_enabled} eleads_sync_active{/if}">
-                        <input class="form-control" type="text" value="{$feed_urls[$language->id]|escape}" readonly>
-                        <div class="input-group-append">
-                            <a href="#" class="btn btn_small btn-info fn_eleads_action fn_clipboard fn_eleads_copy_url hint-bottom-middle-t-info-s-small-mobile" data-copy-string="{$feed_urls[$language->id]|escape}" data-hint="Click to copy" data-hint-copied="✔ Copied to clipboard">
-                                <i class="fa fa-copy"></i>
+                    <div class="eleads_feed_actions{if $sync_enabled} eleads_sync_active{/if}">
+                        <div class="eleads_feed_inline_actions">
+                            <button type="button" class="btn btn_small btn_blue fn_eleads_feed_generate" style="display:none;">
+                                {$btr->okaycms__eleads_yml_feed__generate|escape}
+                            </button>
+                            <a href="#" class="btn btn_small btn-info fn_eleads_action fn_clipboard fn_eleads_copy_url eleads_feed_btn" data-copy-string="{$feed_urls[$language->id]|escape}">
+                                {$btr->okaycms__eleads_yml_feed__copy|escape}
                             </a>
-                            <a href="{$feed_urls[$language->id]|escape}" class="btn btn_small btn-info fn_eleads_action" download="eleads-feed-{$language->label|escape}.xml">
-                                <i class="fa fa-download"></i>
+                            <a href="{$feed_urls[$language->id]|escape}" class="btn btn_small btn-info fn_eleads_action fn_eleads_feed_download eleads_feed_btn" download="eleads-feed-{$language->label|escape}.xml">
+                                {$btr->okaycms__eleads_yml_feed__download|escape}
                             </a>
+                            <div class="eleads_feed_status_bar"
+                                 data-generate-url="{$feed_generate_url|escape}"
+                                 data-status-url="{$feed_status_url|escape}"
+                                 data-api-key="{$api_key_value|escape}"
+                                 data-api-valid="{if $api_key_valid}1{else}0{/if}"
+                                 data-label-idle="{$btr->okaycms__eleads_yml_feed__status_idle|escape}"
+                                 data-label-running="{$btr->okaycms__eleads_yml_feed__status_running|escape}"
+                                 data-label-ready="{$btr->okaycms__eleads_yml_feed__status_ready|escape}"
+                                 data-label-failed="{$btr->okaycms__eleads_yml_feed__status_failed|escape}"
+                                 data-label-generate="{$btr->okaycms__eleads_yml_feed__generate|escape}"
+                                 data-label-regenerate="{$btr->okaycms__eleads_yml_feed__regenerate|escape}"
+                                 data-label-processing="{$btr->okaycms__eleads_yml_feed__processing|escape}"
+                                 data-label-api-required="{$btr->okaycms__eleads_yml_feed__api_key_required|escape}">
+                                <span class="eleads_feed_status_badge fn_eleads_feed_status_text">{$btr->okaycms__eleads_yml_feed__status_loading|escape}</span>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -135,6 +135,8 @@ class ELeadsAdmin extends IndexAdmin
         $sitemapUrl = rtrim($rootUrl, '/') . '/e-search/sitemap.xml';
         $updateInfo = ELeadsUpdateHelper::getUpdateInfo();
         $updateActionUrl = Request::getRootUrl() . '/backend/index.php?controller=ELeads.Eleads.ELeadsUpdateAdmin';
+        $feedGenerateUrl = rtrim($rootUrl, '/') . '/eleads-yml/api/generate';
+        $feedStatusUrl = rtrim($rootUrl, '/') . '/eleads-yml/api/status';
 
         $this->design->assign('categories', $categories);
         $this->design->assign('features', $features);
@@ -167,11 +169,14 @@ class ELeadsAdmin extends IndexAdmin
         $this->design->assign('image_sizes', $imageSizes);
         $this->design->assign('selected_image_size', $selectedImageSize);
         $this->design->assign('api_key_required', !$apiKeyValid);
+        $this->design->assign('api_key_valid', $apiKeyValid);
         $this->design->assign('api_key_value', $apiKeySubmitted !== null ? $apiKeySubmitted : $apiKey);
         $this->design->assign('api_key_error', $apiKeyError);
         $this->design->assign('update_info', $updateInfo);
         $this->design->assign('update_action_url', $updateActionUrl);
         $this->design->assign('seo_sitemap_url', $sitemapUrl);
+        $this->design->assign('feed_generate_url', $feedGenerateUrl);
+        $this->design->assign('feed_status_url', $feedStatusUrl);
 
         $this->response->setContent($this->design->fetch('e_leads.tpl'));
     }

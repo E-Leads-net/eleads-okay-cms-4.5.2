@@ -120,6 +120,147 @@
 
         updateSyncHighlight();
         $(document).on('change', 'input[name="eleads__sync_enabled"]', updateSyncHighlight);
+
+        var eleadsFeedPollers = {};
+
+        function eleadsSetFeedStatus($row, state) {
+            var $bar = $row.find('.eleads_feed_status_bar');
+            var $status = $row.find('.fn_eleads_feed_status_text');
+            var $button = $row.find('.fn_eleads_feed_generate');
+            var $download = $row.find('.fn_eleads_feed_download');
+            var labels = {
+                idle: $bar.data('labelIdle'),
+                running: $bar.data('labelRunning'),
+                ready: $bar.data('labelReady'),
+                failed: $bar.data('labelFailed')
+            };
+            var status = state && state.status ? state.status : 'idle';
+            var text = labels[status] || status;
+            var buttonText = $bar.data('labelGenerate');
+
+            if (status === 'running' && typeof state.processed !== 'undefined') {
+                text += ': ' + ($bar.data('labelProcessing') || 'Processing') + ' ' + state.processed;
+            }
+            if (status === 'failed' && state.error) {
+                text += ' (' + state.error + ')';
+            }
+            if (status === 'ready') {
+                buttonText = $bar.data('labelRegenerate') || $bar.data('labelGenerate');
+            }
+
+            $status
+                .text(text)
+                .removeClass('is-idle is-running is-ready is-failed')
+                .addClass('is-' + status);
+
+            if (status === 'ready') {
+                $download.removeClass('is-disabled').attr('aria-disabled', 'false');
+            } else {
+                $download.addClass('is-disabled').attr('aria-disabled', 'true');
+            }
+
+            if (status === 'idle' || status === 'failed' || status === 'ready') {
+                $button.text(buttonText).prop('disabled', false).show();
+            } else {
+                $button.hide();
+            }
+        }
+
+        $(document).on('click', '.fn_eleads_feed_download.is-disabled', function(e) {
+            e.preventDefault();
+        });
+
+        function eleadsFetchFeedStatus($row, pollNext) {
+            var $bar = $row.find('.eleads_feed_status_bar');
+            var lang = $row.data('lang');
+
+            if (!$bar.length) {
+                return;
+            }
+            if ($bar.data('apiValid') !== 1 && $bar.data('apiValid') !== '1') {
+                $row.find('.fn_eleads_feed_status_text')
+                    .text($bar.data('labelApiRequired'))
+                    .removeClass('is-idle is-running is-ready is-failed')
+                    .addClass('is-failed');
+                return;
+            }
+
+            $.ajax({
+                url: $bar.data('statusUrl'),
+                method: 'GET',
+                data: { lang: lang },
+                headers: {
+                    'Authorization': 'Bearer ' + ($bar.data('apiKey') || ''),
+                    'Accept': 'application/json'
+                }
+            }).done(function(response) {
+                eleadsSetFeedStatus($row, response || {});
+                if (pollNext && response && response.status === 'running') {
+                    eleadsSchedulePoll($row);
+                }
+            }).fail(function(xhr) {
+                var errorText = 'status_error';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorText = xhr.responseJSON.error;
+                }
+                eleadsSetFeedStatus($row, {
+                    status: 'failed',
+                    error: errorText
+                });
+            });
+        }
+
+        function eleadsSchedulePoll($row) {
+            var lang = $row.data('lang');
+            if (eleadsFeedPollers[lang]) {
+                clearTimeout(eleadsFeedPollers[lang]);
+            }
+            eleadsFeedPollers[lang] = setTimeout(function() {
+                eleadsFetchFeedStatus($row, true);
+            }, 1500);
+        }
+
+        $(document).on('click', '.fn_eleads_feed_generate', function(e) {
+            e.preventDefault();
+            var $button = $(this);
+            var $row = $button.closest('[data-eleads-feed-row]');
+            var $bar = $row.find('.eleads_feed_status_bar');
+            var lang = $row.data('lang');
+
+            if ($button.prop('disabled')) {
+                return;
+            }
+
+            $button.prop('disabled', true);
+            eleadsSetFeedStatus($row, { status: 'running', processed: 0 });
+
+            $.ajax({
+                url: $bar.data('generateUrl') + '?lang=' + encodeURIComponent(lang),
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + ($bar.data('apiKey') || ''),
+                    'Accept': 'application/json'
+                }
+            }).done(function(response) {
+                var job = response && response.job ? response.job : { status: 'running', processed: 0 };
+                eleadsSetFeedStatus($row, job);
+                eleadsSchedulePoll($row);
+            }).fail(function(xhr) {
+                var errorText = 'generation_failed';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorText = xhr.responseJSON.error;
+                }
+                eleadsSetFeedStatus($row, {
+                    status: 'failed',
+                    error: errorText
+                });
+                $button.prop('disabled', false).show();
+            });
+        });
+
+        $('[data-eleads-feed-row]').each(function() {
+            eleadsFetchFeedStatus($(this), false);
+        });
     });
 </script>
 {/literal}

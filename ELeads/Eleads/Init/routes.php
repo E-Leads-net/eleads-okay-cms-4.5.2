@@ -15,6 +15,20 @@ return [
             'method' => 'render',
         ],
     ],
+    'ELeads_Yml_Generate' => [
+        'slug' => 'eleads-yml/api/generate',
+        'params' => [
+            'controller' => __NAMESPACE__ . '\Controllers\ELeadsGenerateController',
+            'method' => 'render',
+        ],
+    ],
+    'ELeads_Yml_Status' => [
+        'slug' => 'eleads-yml/api/status',
+        'params' => [
+            'controller' => __NAMESPACE__ . '\Controllers\ELeadsStatusController',
+            'method' => 'render',
+        ],
+    ],
     'ELeads_Seo_Sitemap_Sync' => [
         'slug' => 'e-search/api/sitemap-sync',
         'params' => [
