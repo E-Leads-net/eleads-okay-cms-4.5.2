@@ -46,7 +46,7 @@ class SeoSitemapSyncController extends AbstractController
         $newLang = trim((string) ($payload['new_lang'] ?? $payload['new_language'] ?? $lang));
 
         if ($action === '' || $slug === '') {
-            $this->respond(['error' => 'invalid_payload'], 422);
+            $this->respond(['error' => 'invalid_payload'], 400);
             return;
         }
 
@@ -61,14 +61,14 @@ class SeoSitemapSyncController extends AbstractController
             $result = $sitemapHelper->removeSlug($slug, $lang);
         } elseif ($action === 'update') {
             if ($newSlug === '') {
-                $this->respond(['error' => 'invalid_payload'], 422);
+                $this->respond(['error' => 'invalid_payload'], 400);
                 return;
             }
             $result = $sitemapHelper->updateSlug($slug, $newSlug, $lang, $newLang);
             $responseSlug = $newSlug;
             $responseLang = $newLang;
         } else {
-            $this->respond(['error' => 'invalid_action'], 422);
+            $this->respond(['error' => 'invalid_action'], 400);
             return;
         }
 

@@ -94,11 +94,11 @@ class ELeadsGenerateController extends AbstractController
             );
 
             $job = $processor->start($externalLang);
-            $this->respond([
-                'status' => 'accepted',
-                'lang' => $externalLang,
-                'job' => $job,
-            ], 202);
+        $this->respond([
+            'status' => 'accepted',
+            'lang' => $externalLang,
+            'job' => $job,
+        ], 200);
         } catch (\Throwable $e) {
             $this->respond(['error' => 'generation_failed'], 500);
         }

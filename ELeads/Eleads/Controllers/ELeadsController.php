@@ -20,7 +20,7 @@ class ELeadsController extends AbstractController
         $lang
     ) {
         if (!ELeadsAccessGuard::allowFeed($this->settings, $request)) {
-            $this->response->setStatusCode(403);
+            $this->response->setStatusCode(401);
             $this->response->setContentType(RESPONSE_TEXT);
             $this->response->setContent('Forbidden');
             return;
