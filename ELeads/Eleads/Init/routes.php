@@ -29,6 +29,14 @@ return [
             'method' => 'render',
         ],
     ],
+
+    'ELeads_Filter_Redirect' => [
+        'slug' => 'e-filter/?',
+        'params' => [
+            'controller' => __NAMESPACE__ . '\Controllers\FilterRedirectController',
+            'method' => 'render',
+        ],
+    ],
     'ELeads_Seo_Sitemap_Sync' => [
         'slug' => 'e-search/api/sitemap-sync',
         'params' => [
