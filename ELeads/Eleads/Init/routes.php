@@ -31,7 +31,7 @@ return [
     ],
 
     'ELeads_Filter_Redirect' => [
-        'slug' => 'e-filter/?',
+        'slug' => 'e-filter/',
         'params' => [
             'controller' => __NAMESPACE__ . '\Controllers\FilterRedirectController',
             'method' => 'render',
