@@ -5,8 +5,12 @@ namespace Okay\Modules\ELeads\Eleads\Init;
 
 
 use Okay\Core\Modules\AbstractInit;
+use Okay\Core\Request;
+use Okay\Core\Response;
 use Okay\Core\ServiceLocator;
 use Okay\Core\Settings;
+use Okay\Core\Languages;
+use Okay\Core\Router;
 use Okay\Entities\ModulesEntity;
 use Okay\Entities\ProductsEntity;
 use Okay\Modules\ELeads\Eleads\Extenders\ModulesEntityExtender;
@@ -62,5 +66,38 @@ class Init extends AbstractInit
         $settings = $serviceLocator->getService(Settings::class);
         $widgetHelper = new SyncWidgetsTagHelper($settings);
         $widgetHelper->ensureInstalled();
+
+        $this->handleFilterRedirect($serviceLocator);
+    }
+
+    private function handleFilterRedirect(ServiceLocator $serviceLocator): void
+    {
+        if (PHP_SAPI === 'cli' || empty($_SERVER['REQUEST_URI']) || strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            return;
+        }
+
+        /** @var Languages $languages */
+        $languages = $serviceLocator->getService(Languages::class);
+
+        $requestPath = ltrim((string) parse_url('/' . Request::getRequestUri(), PHP_URL_PATH), '/');
+        $langPrefix = trim((string) $languages->getLangLink(), '/');
+
+        if ($langPrefix !== '' && strpos($requestPath, $langPrefix . '/') === 0) {
+            $requestPath = substr($requestPath, strlen($langPrefix) + 1);
+        }
+
+        if (rtrim($requestPath, '/') !== 'e-filter') {
+            return;
+        }
+
+        $query = trim((string) ($_GET['query'] ?? ''));
+        $searchUrl = Router::generateUrl('products', [], true, $languages->getLangId());
+
+        if ($query !== '') {
+            $separator = strpos($searchUrl, '?') === false ? '?' : '&';
+            $searchUrl .= $separator . 'keyword=' . urlencode($query);
+        }
+
+        Response::redirectTo($searchUrl, 301);
     }
 }

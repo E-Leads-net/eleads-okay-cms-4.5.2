@@ -8,10 +8,10 @@ use Okay\Core\Router;
 
 class FilterRedirectController extends AbstractController
 {
-    public function render(Request $request)
+    public function render(Request $request, string $tail = '')
     {
         $query = trim((string) $request->get('query', 'string'));
-        $searchUrl = Router::generateUrl('search', [], true, (int) ($this->language->id ?? 0));
+        $searchUrl = Router::generateUrl('products', [], true, (int) ($this->language->id ?? 0));
 
         if ($query !== '') {
             $separator = strpos($searchUrl, '?') === false ? '?' : '&';

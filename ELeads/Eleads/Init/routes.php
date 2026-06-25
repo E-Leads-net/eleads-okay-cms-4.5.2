@@ -31,7 +31,10 @@ return [
     ],
 
     'ELeads_Filter_Redirect' => [
-        'slug' => 'e-filter/',
+        'slug' => 'e-filter/?{$tail}',
+        'patterns' => [
+            '{$tail}' => '(.*)',
+        ],
         'params' => [
             'controller' => __NAMESPACE__ . '\Controllers\FilterRedirectController',
             'method' => 'render',
