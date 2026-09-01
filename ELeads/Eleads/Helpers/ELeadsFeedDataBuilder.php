@@ -123,6 +123,8 @@ class ELeadsFeedDataBuilder
         CategoriesEntity $categoriesEntity,
         array $selectedCategoryIds
     ): array {
+        // MainHelper may have cached categories before the feed language was selected.
+        $categoriesEntity->initCategories();
         $allCategories = $categoriesEntity->find();
         $allCategoryIds = [];
         $categoriesById = [];

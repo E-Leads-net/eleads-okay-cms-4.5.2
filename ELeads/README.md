@@ -1,7 +1,7 @@
 # E-Leads Module for OkayCMS
 
 ## Version
-- Module version: `1.0.30`
+- Module version: `1.0.31`
 
 ## Overview
 The module integrates OkayCMS with E-Leads and provides four main feature groups:
